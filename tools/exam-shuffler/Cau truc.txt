@@ -1,0 +1,25 @@
+exam-shuffler/
+│
+├── assets/
+├── css/
+├── docs/
+│
+├── js/
+│   ├── app.js
+│   ├── config/
+│   ├── docx/
+│   │   ├── docxReader.js
+│   │   ├── questionSplitter.js
+│   │   ├── answerExtractor.js
+│   │   └── docxWriter.js
+│   ├── excel/
+│   ├── libs/
+│   ├── qr/
+│   ├── shuffle/
+│   │   ├── answerKey.js
+│   │   ├── choiceShuffle.js
+│   │   ├── examBuilder.js
+│   │   └── questionShuffle.js
+│   ├── ui/
+│   ├── utils/
+│   └── zip/
