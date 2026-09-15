@@ -1,0 +1,21 @@
+AI-CLO PTITHCM — TRIỂN KHAI V12.6.53
+
+1. Tải toàn bộ nội dung ZIP lên nhánh main của repo:
+   ai-clo-ptithcm/ai-clo-ptithcm.github.io
+
+2. Trong Supabase Dashboard của hệ thống chính, tạo hoặc cập nhật Edge Function:
+   recognize-question-image
+
+3. Sao chép toàn bộ nội dung file sau vào Function:
+   supabase/functions/recognize-question-image/index.ts
+
+4. Bật Verify JWT.
+
+5. Function dùng secret GEMINI_API_KEY hiện có.
+   Có thể dùng thêm GEMINI_MODELS hoặc GEMINI_MODEL như các Function AI khác.
+
+6. Không cần chạy SQL, không cần migration và không thay đổi schema.
+
+7. Kiểm tra:
+   Đăng nhập tài khoản giảng viên → Ngân hàng câu hỏi → Thêm câu hỏi
+   → Nhận dạng từ ảnh → dán/chọn ảnh → AI nhận dạng câu hỏi.

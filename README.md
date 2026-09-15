@@ -1,4 +1,4 @@
-# AI-CLO PTITHCM — V12.6.43
+# AI-CLO PTITHCM — V12.6.53
 
 **HỆ THỐNG ỨNG DỤNG TRÍ TUỆ NHÂN TẠO HỖ TRỢ ĐÁNH GIÁ SINH VIÊN THEO CHUẨN ĐẦU RA HỌC PHẦN**
 
@@ -6,7 +6,7 @@ AI-CLO PTITHCM là hệ thống web hỗ trợ quản lý học phần, ngân h�
 
 ## Checkpoint hiện tại
 
-- Frontend checkpoint: **V12.6.43**
+- Frontend checkpoint: **V12.6.53**
 - Nhánh chuẩn: `main`
 - Functional commit trước đợt cập nhật tài liệu: `51549fc6157ff8ab369247def6156dc7341a7119`
 - GitHub Pages run #897: **success**
@@ -125,7 +125,8 @@ Bài kiểm tra online không được lấy câu chỉ thuộc ngân hàng bả
 Các contract mới V12.6.x:
 
 - backend có thể giữ `origin_type = 'gemini'`, nhưng UI phải ghi **✦ AI hỗ trợ**;
-- trang Thêm câu hỏi có hai mode đối xứng **Tạo một câu | Tải hàng loạt**;
+- trang Thêm câu hỏi có ba mode **Tạo một câu | Nhận dạng từ ảnh | Tải hàng loạt**;
+- mode nhận dạng ảnh gửi một ảnh PNG/JPG/WEBP lên Edge Function `recognize-question-image`; Gemini điền nội dung, A–D, đáp án và lời giải vào biểu mẫu để giảng viên kiểm tra trước khi lưu;
 - Excel import dùng sheet chính `Cau_hoi`; không có cột Mã câu, hệ thống tự sinh mã số tự nhiên và đệm 0 khi hiển thị;
 - hover desktop của danh sách chỉ có **một owner**: `js/questions/hover-preview.js`;
 - hover hiện toàn bộ câu + A/B/C/D, không đánh dấu đáp án đúng;
@@ -218,3 +219,5 @@ Theo thứ tự:
 - teacher/student qua Supabase/RLS;
 - Excel đáp án+CLO với `/cham-thi-clo`;
 - compile TeX với công thức thực tế.
+
+

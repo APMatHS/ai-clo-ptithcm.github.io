@@ -1,4 +1,4 @@
-/* AI-CLO PTITHCM V11.6.18 — compact structured create/edit question workspace. */
+/* AI-CLO PTITHCM V12.6.53 — compact structured create/edit question workspace. */
 (()=>{
 'use strict';
 
@@ -54,8 +54,10 @@ function buildModeSwitch(form){
  mode=document.createElement('div');
  mode.id='questionCreateMode';
  mode.className='question-create-mode wide';
- mode.innerHTML=`<button type="button" class="question-create-mode-btn active" aria-pressed="true">● Tạo một câu</button><button id="questionBulkUploadMode" type="button" class="question-create-mode-btn" aria-pressed="false">⇧ Tải hàng loạt</button>`;
+ mode.innerHTML=`<button id="questionSingleCreateMode" type="button" class="question-create-mode-btn active" aria-pressed="true">● Tạo một câu</button><button id="questionImageCreateMode" type="button" class="question-create-mode-btn" aria-pressed="false">▣ Nhận dạng từ ảnh</button><button id="questionBulkUploadMode" type="button" class="question-create-mode-btn" aria-pressed="false">⇧ Tải hàng loạt</button>`;
  form.prepend(mode);
+ mode.querySelector('#questionSingleCreateMode')?.addEventListener('click',()=>window.AICLO_QUESTION_IMAGE?.deactivate(form));
+ mode.querySelector('#questionImageCreateMode')?.addEventListener('click',()=>window.AICLO_QUESTION_IMAGE?.activate(form));
  mode.querySelector('#questionBulkUploadMode')?.addEventListener('click',e=>openBulkUpload(e.currentTarget));
  return mode;
 }
@@ -149,3 +151,5 @@ document.addEventListener('DOMContentLoaded',()=>{
 
 window.AICLO_QUESTION_FORM_LAYOUT=Object.freeze({enhance});
 })();
+
+

@@ -337,6 +337,7 @@ async function readWorkbook(file, sets, subjectId, preview) {
 function bulkModeSwitchHtml() {
   return `<div id="questionCreateMode" class="question-create-mode wide" role="tablist" aria-label="Cách tạo câu hỏi">
     <button id="questionSingleCreateMode" type="button" class="question-create-mode-btn" aria-pressed="false">● Tạo một câu</button>
+    <button id="questionImageCreateMode" type="button" class="question-create-mode-btn" aria-pressed="false">▣ Nhận dạng từ ảnh</button>
     <button id="questionBulkUploadMode" type="button" class="question-create-mode-btn active" aria-pressed="true">⇧ Tải hàng loạt</button>
   </div>`;
 }
@@ -366,6 +367,10 @@ function open(sets) {
   );
 
   $('#questionSingleCreateMode')?.addEventListener('click', () => window.v96QuestionForm?.(null, sets));
+  $('#questionImageCreateMode')?.addEventListener('click', async () => {
+    await window.v96QuestionForm?.(null, sets);
+    window.AICLO_QUESTION_IMAGE?.activate(document.querySelector('#qForm'));
+  });
   $('#downloadQuestionImportTemplate').onclick = async () => {
     try { await downloadTemplate(sets); }
     catch (error) { err(error); }
@@ -384,3 +389,5 @@ const api = Object.freeze({open, downloadTemplate, parseRow});
 window.AICLO_QUESTION_IMPORT = api;
 window.v102BulkImportQuestions = open;
 })();
+
+
