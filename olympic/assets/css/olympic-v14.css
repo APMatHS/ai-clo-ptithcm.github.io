@@ -1,0 +1,30 @@
+@import url('/olympic/assets/css/olympic-v13.css?v=1.3');
+
+/* AI-CLO OLYMPIC v1.4 — guarantee that the landing main column stays visible. */
+body[data-olympic-page="home"] .oly-shell > .oly-main,
+body[data-olympic-page="subject"] .oly-shell > .oly-main{
+  display:flex!important;
+  flex-direction:column!important;
+  min-width:0!important;
+  min-height:100vh!important;
+  visibility:visible!important;
+  opacity:1!important;
+}
+body[data-olympic-page="home"] .oly-main > .oly-topbar,
+body[data-olympic-page="subject"] .oly-main > .oly-topbar{
+  display:flex!important;
+  visibility:visible!important;
+  opacity:1!important;
+}
+body[data-olympic-page="home"] #olyContent,
+body[data-olympic-page="subject"] #olyContent{
+  display:block!important;
+  visibility:visible!important;
+  opacity:1!important;
+  min-height:240px;
+}
+body[data-olympic-page="home"] .oly-main > .oly-footer,
+body[data-olympic-page="subject"] .oly-main > .oly-footer{
+  visibility:visible!important;
+  opacity:1!important;
+}
