@@ -3,9 +3,9 @@
 'use strict';
 if(/(^|\/)app\.html$/.test(location.pathname))return;
 const path=location.pathname.replace(/\/index\.html$/,'/');
-const active=path==='/'?'home':path.startsWith('/tools/')?'tools':path==='/huong-dan.html'?'guide':path.startsWith('/cham-thi-clo/')?'grading':path==='/chinh-sach.html'?'policy':'';
-const navLinks=[['/','Trang chủ','home'],['/tools/','Công cụ CLO','tools'],['/huong-dan.html','Hướng dẫn AI-CLO','guide'],['/cham-thi-clo/','Chấm thi CLO','grading']];
-const footerLinks=[['/','Trang chính','home'],['/tools/','Công cụ CLO','tools'],['/huong-dan.html','Hướng dẫn sử dụng','guide'],['/cham-thi-clo/','Chấm thi CLO','grading'],['/chinh-sach.html','Chính sách & bảo mật','policy'],['/app.html','Vào hệ thống','app']];
+const active=path==='/'?'home':path.startsWith('/tools/cham-thi-clo/')?'grading':path.startsWith('/tools/')?'tools':path==='/huong-dan.html'?'guide':path==='/chinh-sach.html'?'policy':'';
+const navLinks=[['/','Trang chủ','home'],['/tools/','Công cụ CLO','tools'],['/huong-dan.html','Hướng dẫn AI-CLO','guide'],['/tools/cham-thi-clo/','Chấm thi CLO','grading']];
+const footerLinks=[['/','Trang chính','home'],['/tools/','Công cụ CLO','tools'],['/huong-dan.html','Hướng dẫn sử dụng','guide'],['/tools/cham-thi-clo/','Chấm thi CLO','grading'],['/chinh-sach.html','Chính sách & bảo mật','policy'],['/app.html','Vào hệ thống','app']];
 function headerHtml(){return `<nav class="aiclo-public-links" aria-label="Điều hướng công khai">${navLinks.map(([href,label,key])=>`<a href="${href}"${key===active?' class="active"':''}>${label}</a>`).join('')}</nav><div class="aiclo-public-actions"><button class="public-ai-button" type="button"><span aria-hidden="true">💬</span><span>Hỏi AI-CLO</span></button><a class="public-system-link" href="/app.html" target="_blank" rel="noopener">Vào hệ thống</a></div>`}
 function footerHtml(){return `<span>© 2026 AI-CLO PTITHCM</span><nav aria-label="Liên kết cuối trang">${footerLinks.map(([href,label,key])=>`<a href="${href}"${key===active?' class="active"':''}${key==='app'?' target="_blank" rel="noopener"':''}>${label}</a>`).join('')}</nav>`}
 function mount(){
