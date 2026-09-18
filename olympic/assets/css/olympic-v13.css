@@ -1,0 +1,70 @@
+@import url('/olympic/assets/css/olympic.css?v=1.2');
+
+/* AI-CLO OLYMPIC v1.3 — compact landing pages on phones. */
+@media (max-width:520px){
+  body[data-olympic-page="home"] .oly-content,
+  body[data-olympic-page="subject"] .oly-content{padding:12px 10px 22px}
+
+  body[data-olympic-page="home"] .oly-topbar,
+  body[data-olympic-page="subject"] .oly-topbar{padding:8px 10px;min-height:56px}
+
+  body[data-olympic-page="home"] .oly-crumb small,
+  body[data-olympic-page="subject"] .oly-crumb small{display:none}
+
+  body[data-olympic-page="home"] .oly-crumb h1,
+  body[data-olympic-page="subject"] .oly-crumb h1{font-size:17px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+  body[data-olympic-page="home"] .oly-hero,
+  body[data-olympic-page="subject"] .oly-hero{padding:18px 16px;border-radius:16px}
+
+  body[data-olympic-page="home"] .oly-hero::after,
+  body[data-olympic-page="subject"] .oly-hero::after{font-size:38px;right:-72px;bottom:-5px}
+
+  body[data-olympic-page="home"] .oly-kicker,
+  body[data-olympic-page="subject"] .oly-kicker,
+  body[data-olympic-page="home"] .oly-hero p,
+  body[data-olympic-page="subject"] .oly-hero p{display:none}
+
+  body[data-olympic-page="home"] .oly-hero h2,
+  body[data-olympic-page="subject"] .oly-hero h2{font-size:29px;margin:0;letter-spacing:-.5px}
+
+  body[data-olympic-page="home"] .oly-hero-actions,
+  body[data-olympic-page="subject"] .oly-hero-actions{margin-top:14px;gap:7px}
+
+  body[data-olympic-page="home"] .oly-hero-actions .oly-btn,
+  body[data-olympic-page="subject"] .oly-hero-actions .oly-btn{min-height:40px;padding:8px 11px;font-size:12px}
+
+  body[data-olympic-page="home"] .oly-section-head,
+  body[data-olympic-page="subject"] .oly-section-head{margin:18px 2px 8px;align-items:center}
+
+  body[data-olympic-page="home"] .oly-section-head h2,
+  body[data-olympic-page="subject"] .oly-section-head h2{font-size:18px}
+
+  body[data-olympic-page="home"] .oly-section-head p,
+  body[data-olympic-page="subject"] .oly-section-head p{display:none}
+
+  body[data-olympic-page="home"] .oly-grid,
+  body[data-olympic-page="home"] .oly-grid.two,
+  body[data-olympic-page="subject"] .oly-grid,
+  body[data-olympic-page="subject"] .oly-grid.two{gap:8px}
+
+  body[data-olympic-page="home"] .oly-card,
+  body[data-olympic-page="subject"] .oly-card{min-height:62px;padding:10px 42px 10px 10px;border-radius:13px;display:grid;grid-template-columns:40px minmax(0,1fr);column-gap:10px;align-items:center}
+
+  body[data-olympic-page="home"] .oly-card .math-icon,
+  body[data-olympic-page="subject"] .oly-card .math-icon{grid-column:1;width:40px;height:40px;margin:0;border-radius:11px;font-size:20px}
+
+  body[data-olympic-page="home"] .oly-card h3,
+  body[data-olympic-page="subject"] .oly-card h3{grid-column:2;margin:0;font-size:17px;line-height:1.15}
+
+  body[data-olympic-page="home"] .oly-card p,
+  body[data-olympic-page="subject"] .oly-card p,
+  body[data-olympic-page="home"] .oly-card .meta,
+  body[data-olympic-page="subject"] .oly-card .meta{display:none}
+
+  body[data-olympic-page="home"] .oly-card .arrow,
+  body[data-olympic-page="subject"] .oly-card .arrow{right:13px;top:50%;transform:translateY(-50%);font-size:18px}
+
+  body[data-olympic-page="home"] .oly-footer,
+  body[data-olympic-page="subject"] .oly-footer{padding:12px 10px;font-size:10px}
+}
