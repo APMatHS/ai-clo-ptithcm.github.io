@@ -1,0 +1,21 @@
+AI-CLO Aptis Lab V1 — upload manifest
+====================================
+
+Copy the ZIP contents into the ROOT of ai-clo-ptithcm.github.io and preserve paths.
+
+Changed outside /tools/aptis-lab:
+- tools/index.html
+  Adds one card/link to AI-CLO Aptis Lab.
+- supabase/migrations/aptis-lab-v1-*.sql
+  Keeps the production backend changes in repository history.
+
+All Aptis Lab frontend code is isolated under:
+- tools/aptis-lab/
+
+Backend snapshot is also mirrored for self-contained documentation at:
+- tools/aptis-lab/supabase/schema-v1.sql
+
+IMPORTANT:
+- Production Supabase project rraooqedkpyhokattwdz has ALREADY received these migrations.
+- Do not re-run them on that production project just to upload this ZIP.
+- No existing AI-CLO JS/CSS/HTML files were modified except tools/index.html.

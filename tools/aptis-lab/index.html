@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="AI-CLO Aptis Lab — luyện Aptis General B1/B2 với ngân hàng câu hỏi, tiến độ cá nhân và AI hỗ trợ có giới hạn.">
+  <link rel="icon" href="../../assets/images/favicon.ico" sizes="any">
+  <link rel="icon" type="image/png" href="../../assets/images/favicon-32.png" sizes="32x32">
+  <title>AI-CLO Aptis Lab</title>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+  <link rel="preconnect" href="https://rraooqedkpyhokattwdz.supabase.co" crossorigin>
+  <link rel="stylesheet" href="css/aptis.css?v=1.0.0">
+  <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4"></script>
+  <script defer src="js/config.js?v=1.0.0"></script>
+  <script defer src="js/api.js?v=1.0.0"></script>
+  <script defer src="js/app.js?v=1.0.0"></script>
+</head>
+<body>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <section id="authGate" class="auth-gate">
+    <div class="auth-card">
+      <a class="brand-mark" href="../">AI-CLO <span>Aptis Lab</span></a>
+      <span class="pill">Aptis General · B1/B2</span>
+      <h1>Không gian luyện Aptis riêng trong AI-CLO</h1>
+      <p>Dùng cùng tài khoản AI-CLO PTITHCM. Giảng viên được truy cập mặc định; sinh viên cần được Admin cấp quyền.</p>
+      <form id="loginForm" class="login-form">
+        <label>Email<input id="loginEmail" type="email" autocomplete="email" required placeholder="email@ptithcm.edu.vn"></label>
+        <label>Mật khẩu<input id="loginPassword" type="password" autocomplete="current-password" minlength="6" required></label>
+        <button class="btn primary" type="submit">Đăng nhập Aptis Lab</button>
+      </form>
+      <div class="auth-links"><a href="../../app.html">Mở AI-CLO chính</a><a href="../">Về Công cụ</a></div>
+    </div>
+  </section>
+
+  <section id="accessDenied" class="auth-gate hidden">
+    <div class="auth-card compact">
+      <a class="brand-mark" href="../">AI-CLO <span>Aptis Lab</span></a>
+      <div class="denied-icon">🔒</div>
+      <h1>Tài khoản chưa được cấp quyền Aptis Lab</h1>
+      <p>Admin và giảng viên được truy cập mặc định. Sinh viên cần được Admin thêm vào danh sách Aptis Lab.</p>
+      <div class="auth-actions"><button id="deniedLogout" class="btn secondary" type="button">Đăng xuất</button><a class="btn primary" href="../../app.html">Về AI-CLO</a></div>
+    </div>
+  </section>
+
+  <div id="labApp" class="lab-shell hidden">
+    <header class="lab-header">
+      <div class="header-left">
+        <button id="mobileMenuBtn" class="icon-btn mobile-only" type="button" aria-label="Mở menu">☰</button>
+        <a class="lab-brand" href="#dashboard"><b>AI-CLO</b><span>Aptis Lab</span></a>
+        <span class="lab-badge">General</span>
+      </div>
+      <div class="header-right">
+        <button id="targetLevelBtn" class="target-chip" type="button" title="Đổi mục tiêu">Mục tiêu <b id="targetLevelText">B2</b></button>
+        <div class="streak-chip" title="Chuỗi ngày học liên tiếp">🔥 <b id="streakText">0</b> ngày</div>
+        <button id="userMenuBtn" class="user-chip" type="button"><span id="userInitial">A</span><b id="userNameTop">Người học</b></button>
+      </div>
+    </header>
+
+    <div class="lab-body">
+      <aside id="sidebar" class="sidebar">
+        <div class="side-intro"><small>BẠN ĐANG Ở</small><strong>AI-CLO Aptis Lab</strong><span>Luyện Aptis General B1/B2</span></div>
+        <nav id="labNav" class="lab-nav">
+          <button data-view="dashboard" class="active"><span>⌂</span>Tổng quan</button>
+          <button data-view="practice"><span>▶</span>Luyện tập</button>
+          <button data-view="mock"><span>◫</span>Thi thử</button>
+          <button data-view="vocabulary"><span>◇</span>Từ vựng</button>
+          <button data-view="progress"><span>↗</span>Tiến độ</button>
+          <button data-view="coach"><span>✦</span>AI Coach</button>
+          <button data-view="suggestions"><span>✎</span>Góp ý · Đề xuất</button>
+          <button id="manageNavBtn" data-view="manage" class="hidden"><span>⚙</span>Quản trị Aptis</button>
+        </nav>
+        <div class="side-foot">
+          <a href="../">← Công cụ AI-CLO</a>
+          <a href="../../app.html">Về hệ thống chính</a>
+          <button id="logoutBtn" type="button">Đăng xuất</button>
+        </div>
+      </aside>
+
+      <main class="main-panel">
+        <div id="mobileBackdrop" class="mobile-backdrop hidden"></div>
+        <section id="pageContent" class="page-content" aria-live="polite"></section>
+      </main>
+    </div>
+  </div>
+
+  <dialog id="simpleDialog" class="dialog">
+    <form method="dialog" class="dialog-card">
+      <div class="dialog-head"><h3 id="dialogTitle">Thiết lập</h3><button value="cancel" aria-label="Đóng">×</button></div>
+      <div id="dialogBody" class="dialog-body"></div>
+    </form>
+  </dialog>
+</body>
+</html>
