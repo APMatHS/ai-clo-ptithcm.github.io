@@ -26,8 +26,11 @@ async function renderRoute({scroll=true}={}){
   const token=++routeSeq;
   applyRoute(route);
   updateShell();
-  const c=$('#olyContent');
-  if(!c)return;
+  const old=$('#olyContent');
+  if(!old)return;
+  const c=old.cloneNode(false);
+  c.innerHTML='';
+  old.replaceWith(c);
   c.setAttribute('aria-busy','true');
   try{
     const fn=renderers[page]||renderHome;
