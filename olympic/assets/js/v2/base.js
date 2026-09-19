@@ -1,7 +1,7 @@
 /* AI-CLO OLYMPIC V2 — persistent app shell, soft router, Supabase data layer */
 'use strict';
 
-const APP_VERSION='2.0.3';
+const APP_VERSION='2.0.4';
 const $=(s,p=document)=>p.querySelector(s);
 const $$=(s,p=document)=>[...p.querySelectorAll(s)];
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
