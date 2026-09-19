@@ -5,7 +5,7 @@ const renderers={
   lessons:renderLessons,
   practice:c=>renderComing(c,'practice'),
   problems:c=>renderComing(c,'problems'),
-  tests:c=>renderComing(c,'tests'),
+  tests:renderTests,
   results:c=>renderComing(c,'results'),
   teacher:renderTeacher,
   teacherContents:renderTeacherContents,
@@ -26,8 +26,11 @@ async function renderRoute({scroll=true}={}){
   const token=++routeSeq;
   applyRoute(route);
   updateShell();
-  const c=$('#olyContent');
-  if(!c)return;
+  const old=$('#olyContent');
+  if(!old)return;
+  const c=old.cloneNode(false);
+  c.innerHTML='';
+  old.replaceWith(c);
   c.setAttribute('aria-busy','true');
   try{
     const fn=renderers[page]||renderHome;
