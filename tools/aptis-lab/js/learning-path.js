@@ -246,7 +246,7 @@
     const options = Array.isArray(q.content?.options) ? q.content.options : [];
     if (options.length) return `<div class="options">${options.map((o, index) => { const selected = q.response?.value === o.key; const correct = q.answered && q.correct_answer?.value === o.key; const wrong = q.answered && selected && q.is_correct === false; const displayKey = String.fromCharCode(65 + index); return `<button type="button" class="option-btn ${correct ? 'correct' : ''} ${wrong ? 'wrong' : ''}" data-lp-option="${esc(o.key)}" ${q.answered ? 'disabled' : ''}><span class="option-key">${displayKey}</span><span>${esc(o.text)}</span></button>`; }).join('')}</div>`;
     const draft = ctx.saved?.draft_response?.question_id === q.id ? (ctx.saved.draft_response.text || '') : (q.response?.text || '');
-    if (q.question_type === 'speaking_prompt') return `<div class="record-box"><button id="lpRecordBtn" class="btn primary" type="button" ${q.answered ? 'disabled' : ''}>● Bắt đầu ghi âm</button><span id="lpRecordStatus" class="record-status">${q.answered ? 'Bài nói đã được lưu.' : 'Bài ghi âm chỉ tải lên sau khi bạn bấm Lưu bài nói.'}</span></div><button id="lpSubmitSpeaking" class="btn secondary" style="margin-top:12px" disabled>Lưu bài nói</button>`;
+    if (q.question_type === 'speaking_prompt') return `<div class="record-box"><button id="lpRecordBtn" class="btn primary" type="button" ${q.answered ? 'disabled' : ''}>● Bắt đầu ghi âm</button><span id="lpRecordStatus" class="record-status">${q.answered ? 'Bài nói đã được lưu.' : 'Bài ghi âm chỉ tải lên sau khi bạn bấm Lưu bài nói.'}</span></div><button id="lpSubmitSpeaking" class="btn secondary" style="margin-top:12px" disabled>Lưu bài nói</button>${q.answered ? '<div id="lpAiSpeakingBox" style="margin-top:12px"><button id="lpAssessSpeaking" class="btn primary" type="button">AI chấm bài nói</button><div class="help" style="margin-top:6px">Chỉ gọi AI khi bạn bấm nút. Đây là đánh giá luyện tập, không phải điểm Aptis chính thức.</div></div>' : ''}`;
     return `<textarea id="lpTextAnswer" class="writing-box" placeholder="${q.question_type === 'writing_prompt' ? 'Viết câu trả lời của bạn…' : 'Nhập câu trả lời…'}">${esc(draft)}</textarea><div class="help" id="lpWordCount">${draft.trim() ? draft.trim().split(/\s+/).length : 0} từ · tự động lưu nháp</div><button type="button" class="btn primary" id="lpSubmitText" ${q.answered ? 'disabled' : ''}>${q.answered ? 'Đã lưu' : q.question_type === 'writing_prompt' ? 'Lưu bài viết' : 'Trả lời'}</button>`;
   }
 
@@ -273,6 +273,20 @@
       $('#lpSubmitText').onclick = () => submitQuestion(q, { text: ta.value.trim() });
     }
     if (q.question_type === 'speaking_prompt' && !q.answered) wireRecorder(q);
+    if (q.question_type === 'speaking_prompt' && q.answered) wireSpeakingAssessment(q);
+  }
+
+  function speakingAssessmentHtml(a) {
+    const r = a?.rubric || {};
+    if (a?.status === 'insufficient_evidence' || r.status === 'insufficient_evidence') return '<div class="feedback"><b>Chưa đủ dữ liệu để đánh giá</b><div class="help">Recording quá ngắn hoặc chưa đủ rõ. Hãy ghi lại một câu trả lời đầy đủ hơn.</div></div>';
+    const s=r.scores||{}; const labels=[['task_fulfilment','Hoàn thành yêu cầu'],['grammar','Ngữ pháp'],['vocabulary','Từ vựng'],['fluency_coherence','Độ trôi chảy & mạch lạc'],['pronunciation_intelligibility','Phát âm & độ dễ hiểu']];
+    return `<div class="feedback good"><b>Ước lượng luyện tập: ${esc(a.estimated_level||r.estimated_level||'—')} · ${a.total_score==null?'—':esc(a.total_score)}/25</b><div class="help">Đánh giá AI phục vụ luyện tập, không phải điểm Aptis chính thức.</div><div style="margin-top:8px">${labels.map(([k,l])=>`<div><strong>${l}:</strong> ${esc(s[k]??'—')}/5</div>`).join('')}</div>${r.strengths?.length?`<div style="margin-top:8px"><strong>Điểm tốt:</strong> ${esc(r.strengths.join(' · '))}</div>`:''}${r.improvements?.length?`<div style="margin-top:8px"><strong>Cần cải thiện:</strong> ${esc(r.improvements.join(' · '))}</div>`:''}${r.next_attempt_tip?`<div style="margin-top:8px"><strong>Lần nói tiếp theo:</strong> ${esc(r.next_attempt_tip)}</div>`:''}</div>`;
+  }
+
+  async function wireSpeakingAssessment(q) {
+    const box=$('#lpAiSpeakingBox'), btn=$('#lpAssessSpeaking'); if(!box||!btn)return;
+    try { const cached=await API.getSpeakingAssessment(ctx.attempt.attempt_id,q.id); if(cached){box.innerHTML=speakingAssessmentHtml(cached);return;} } catch(_){}
+    btn.onclick=async()=>{btn.disabled=true;btn.textContent='AI đang nghe và chấm…';try{const data=await API.assessSpeaking(ctx.attempt.attempt_id,q.id);box.innerHTML=speakingAssessmentHtml(data.assessment);}catch(err){notify(err?.message||'Không chấm được bài nói.','error');btn.disabled=false;btn.textContent='AI chấm bài nói';}};
   }
 
   async function wireRecorder(q) {
