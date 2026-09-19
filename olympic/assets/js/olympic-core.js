@@ -1,171 +1,224 @@
-/* AI-CLO OLYMPIC V1 — shared shell, Supabase content tree and TeX lesson editor */
+/* AI-CLO OLYMPIC V2 — persistent app shell, soft router, Supabase data layer */
 (()=>{
 'use strict';
-const $=(s,p=document)=>p.querySelector(s), $$=(s,p=document)=>[...p.querySelectorAll(s)];
+
+const APP_VERSION='2.0.0';
+const $=(s,p=document)=>p.querySelector(s);
+const $$=(s,p=document)=>[...p.querySelectorAll(s)];
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const cfg=window.AICLO_CONFIG||{};
 const db=window.supabase?.createClient?.(cfg.SUPABASE_URL,cfg.SUPABASE_PUBLISHABLE_KEY);
-const page=document.body.dataset.olympicPage||'home';
-const subjectCode=document.body.dataset.subject||'';
-const state={user:null,profile:null,subjects:[],subject:null,sections:[],topics:[],lessons:[]};
-const labels={
- home:['Olympic Toán sinh viên','Không gian học tập và luyện thi Olympic'],subject:['Tổng quan môn','Nội dung, bài học và luyện tập'],contents:['Nội dung cần học','Cây chuyên đề do giảng viên quản lý'],lessons:['Bài học','Lý thuyết, ví dụ và bài giảng TeX'],practice:['Luyện tập','Bài tập theo chuyên đề'],problems:['Ngân hàng bài toán','Bài toán Olympic được tuyển chọn'],tests:['Đề luyện','Đề luyện và thi thử'],results:['Kết quả','Theo dõi tiến độ học tập'],teacher:['Khu vực giảng viên','Biên soạn và quản lý học liệu'],teacherContents:['Quản lý nội dung','Thêm, sửa và sắp xếp cây nội dung'],teacherLessons:['Soạn bài học','Trình soạn TeX và xem trước trực tiếp'],teacherProblems:['Quản lý bài toán','Ngân hàng bài toán Olympic'],teacherTests:['Quản lý đề luyện','Tạo đề luyện và thi thử'],teacherStudents:['Sinh viên','Theo dõi hoạt động học tập'],admin:['Cấu hình Olympic','Phân quyền giảng viên theo môn']
+
+let page='home';
+let subjectCode='';
+let routeSeq=0;
+let shellReady=false;
+
+const state={
+  user:null,
+  profile:null,
+  subjects:[],
+  subject:null,
+  dirty:false,
+  cache:{trees:new Map(),lessons:new Map()}
 };
-const subjFallback={algebra:{code:'algebra',name:'Đại số',desc:'Ma trận, đại số tuyến tính, đa thức và các bài toán rời rạc.'},calculus:{code:'calculus',name:'Giải tích',desc:'Giới hạn, đạo hàm, tích phân, chuỗi và các bài toán giải tích Olympic.'}};
+
+const labels={
+  home:['Olympic Toán sinh viên','Không gian học tập và luyện thi Olympic'],
+  subject:['Tổng quan môn','Nội dung, bài học và luyện tập'],
+  contents:['Nội dung cần học','Cây chuyên đề do giảng viên quản lý'],
+  lessons:['Bài học','Lý thuyết, ví dụ và bài giảng TeX'],
+  practice:['Luyện tập','Bài tập theo chuyên đề'],
+  problems:['Ngân hàng bài toán','Bài toán Olympic được tuyển chọn'],
+  tests:['Đề luyện','Đề luyện và thi thử'],
+  results:['Kết quả','Theo dõi tiến độ học tập'],
+  teacher:['Khu vực giảng viên','Biên soạn và quản lý học liệu'],
+  teacherContents:['Quản lý nội dung','Thêm, sửa và sắp xếp cây nội dung'],
+  teacherLessons:['Soạn bài học','Trình soạn TeX và xem trước trực tiếp'],
+  teacherProblems:['Quản lý bài toán','Ngân hàng bài toán Olympic'],
+  teacherTests:['Quản lý đề luyện','Tạo đề luyện và thi thử'],
+  teacherStudents:['Sinh viên','Theo dõi hoạt động học tập'],
+  admin:['Cấu hình Olympic','Phân quyền giảng viên theo môn']
+};
+
+const subjFallback={
+  algebra:{code:'algebra',name:'Đại số',desc:'Ma trận, đại số tuyến tính, đa thức và các bài toán rời rạc.'},
+  calculus:{code:'calculus',name:'Giải tích',desc:'Giới hạn, đạo hàm, tích phân, chuỗi và các bài toán giải tích Olympic.'}
+};
+
+const featurePages=new Set(['contents','lessons','practice','problems','tests','results']);
+const teacherPages={contents:'teacherContents',lessons:'teacherLessons',problems:'teacherProblems',tests:'teacherTests',students:'teacherStudents'};
+const CACHE_TTL=30000;
+
 const role=()=>state.profile?.role||'guest';
 const staff=()=>['admin','teacher','lecturer','giangvien'].includes(role());
 const admin=()=>role()==='admin';
-const toast=(m,bad=false)=>{let x=$('#olyToast');if(!x)return;x.textContent=m;x.className='oly-toast show'+(bad?' error':'');setTimeout(()=>x.className='oly-toast',2700)};
-const fail=e=>{console.error(e);toast(e?.message||'Có lỗi xảy ra',true)};
 const subjectUrl=(code=subjectCode)=>`/olympic/${code}/`;
 const subjectFeatureUrl=(feature,code=subjectCode)=>`/olympic/${code}/${feature}/`;
 
-function ensureMathJax(){
- if(window.MathJax?.typesetPromise)return Promise.resolve(window.MathJax);
- if(document.querySelector('script[data-olympic-mathjax]'))return new Promise(r=>window.addEventListener('olympic-math-ready',()=>r(window.MathJax),{once:true}));
- window.MathJax={tex:{inlineMath:[['\\(','\\)'],['$','$']],displayMath:[['\\[','\\]'],['$$','$$']],processEscapes:true},options:{skipHtmlTags:['script','noscript','style','textarea','pre','code']}};
- return new Promise((resolve,reject)=>{let s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js';s.defer=true;s.dataset.olympicMathjax='1';s.onload=()=>{window.dispatchEvent(new Event('olympic-math-ready'));resolve(window.MathJax)};s.onerror=reject;document.head.appendChild(s)});
+function toast(message,bad=false){
+  const x=$('#olyToast');
+  if(!x)return;
+  x.textContent=message;
+  x.className='oly-toast show'+(bad?' error':'');
+  clearTimeout(toast.timer);
+  toast.timer=setTimeout(()=>x.className='oly-toast',2700);
 }
-async function typeset(node=document.body){try{await ensureMathJax();await window.MathJax?.typesetPromise?.([node])}catch(e){console.warn('MathJax:',e)}}
+function fail(error){console.error(error);toast(error?.message||'Có lỗi xảy ra',true)}
+
+function routeFromPath(pathname=location.pathname){
+  let p=pathname.replace(/\/index\.html$/,'/');
+  if(!p.endsWith('/'))p+='/';
+  if(p==='/olympic/')return {valid:true,page:'home',subjectCode:''};
+  if(p==='/olympic/admin/')return {valid:true,page:'admin',subjectCode:''};
+  if(p==='/olympic/teacher/')return {valid:true,page:'teacher',subjectCode:''};
+  let m=p.match(/^\/olympic\/teacher\/([^/]+)\/$/);
+  if(m&&teacherPages[m[1]])return {valid:true,page:teacherPages[m[1]],subjectCode:''};
+  m=p.match(/^\/olympic\/(algebra|calculus)\/$/);
+  if(m)return {valid:true,page:'subject',subjectCode:m[1]};
+  m=p.match(/^\/olympic\/(algebra|calculus)\/([^/]+)\/$/);
+  if(m&&featurePages.has(m[2]))return {valid:true,page:m[2],subjectCode:m[1]};
+  return {valid:false,page:'home',subjectCode:''};
+}
+
+function applyRoute(route){
+  page=route.page;
+  subjectCode=route.subjectCode;
+  document.body.dataset.olympicPage=page;
+  if(subjectCode)document.body.dataset.subject=subjectCode;else delete document.body.dataset.subject;
+  state.subject=state.subjects.find(x=>x.code===subjectCode)||null;
+}
+
+function routeTitle(){
+  const label=(labels[page]||labels.home)[0];
+  const subjectName=(state.subject||subjFallback[subjectCode])?.name;
+  if(subjectCode&&page!=='subject')return `${label} ${subjectName} | AI-CLO OLYMPIC`;
+  if(subjectCode)return `${subjectName} | AI-CLO OLYMPIC`;
+  return `${label} | AI-CLO OLYMPIC`;
+}
 
 function navItems(){
- if(page.startsWith('teacher'))return [
-  ['teacher','⌂','Tổng quan','/olympic/teacher/'],['teacherContents','≡','Nội dung','/olympic/teacher/contents/'],['teacherLessons','∑','Bài học','/olympic/teacher/lessons/'],['teacherProblems','?','Bài toán','/olympic/teacher/problems/'],['teacherTests','✎','Đề luyện','/olympic/teacher/tests/'],['teacherStudents','♙','Sinh viên','/olympic/teacher/students/']
- ];
- if(page==='admin')return [['admin','⚙','Cấu hình','/olympic/admin/']];
- if(subjectCode)return [
-  ['subject','⌂','Tổng quan',subjectUrl()],['contents','≡','Nội dung học',subjectFeatureUrl('contents')],['lessons','∑','Bài học',subjectFeatureUrl('lessons')],['practice','✓','Luyện tập',subjectFeatureUrl('practice')],['problems','?','Bài toán',subjectFeatureUrl('problems')],['tests','✎','Đề luyện',subjectFeatureUrl('tests')],['results','◫','Kết quả',subjectFeatureUrl('results')]
- ];
- return [['home','⌂','Tổng quan','/olympic/']];
+  if(page.startsWith('teacher'))return [
+    ['teacher','⌂','Tổng quan','/olympic/teacher/'],
+    ['teacherContents','≡','Nội dung','/olympic/teacher/contents/'],
+    ['teacherLessons','∑','Bài học','/olympic/teacher/lessons/'],
+    ['teacherProblems','?','Bài toán','/olympic/teacher/problems/'],
+    ['teacherTests','✎','Đề luyện','/olympic/teacher/tests/'],
+    ['teacherStudents','♙','Sinh viên','/olympic/teacher/students/']
+  ];
+  if(page==='admin')return [['admin','⚙','Cấu hình','/olympic/admin/']];
+  if(subjectCode)return [
+    ['subject','⌂','Tổng quan',subjectUrl()],
+    ['contents','≡','Nội dung học',subjectFeatureUrl('contents')],
+    ['lessons','∑','Bài học',subjectFeatureUrl('lessons')],
+    ['practice','✓','Luyện tập',subjectFeatureUrl('practice')],
+    ['problems','?','Bài toán',subjectFeatureUrl('problems')],
+    ['tests','✎','Đề luyện',subjectFeatureUrl('tests')],
+    ['results','◫','Kết quả',subjectFeatureUrl('results')]
+  ];
+  return [['home','⌂','Tổng quan','/olympic/']];
 }
-function shell(){
- const title=labels[page]||labels.home;
- const subjectName=(state.subject||subjFallback[subjectCode])?.name||'';
- const isAuth=!!state.user;
- document.body.innerHTML=`<div class="oly-shell"><aside class="oly-sidebar" id="olySide"><a class="oly-brand" href="/olympic/"><span class="oly-mark">∑</span><span class="oly-brand-text"><span class="oly-brand-name">AI<span class="clo">-CLO</span></span><span class="oly-brand-sub">OLYMPIC</span></span></a>${subjectName?`<div class="oly-subject-pill">Môn hiện tại · <b>${esc(subjectName)}</b></div>`:''}<nav class="oly-nav">${navItems().map(([id,sym,name,url])=>`<a class="${id===page?'active':''}" href="${url}"><span class="symbol">${sym}</span>${name}</a>`).join('')}</nav><div class="oly-side-foot"><div class="oly-user">${isAuth?`<b>${esc(state.profile?.full_name||state.user.email)}</b>${esc(state.profile?.role||'')}`:'<b>Chưa đăng nhập</b>Dùng tài khoản AI-CLO PTITHCM'}</div><div class="oly-side-actions"><a href="/app.html">AI-CLO</a>${isAuth?'<button id="olyLogout">Đăng xuất</button>':'<button id="olyLoginOpen">Đăng nhập</button>'}</div></div></aside><div class="oly-overlay" id="olyOverlay"></div><main class="oly-main"><header class="oly-topbar"><button class="oly-menu" id="olyMenu">☰</button><div class="oly-crumb"><small>AI-CLO OLYMPIC${subjectName?' · '+esc(subjectName):''}</small><h1>${esc(title[0])}</h1></div><div class="oly-top-actions"><a class="hide-mobile" href="/olympic/">Olympic</a>${staff()?'<a class="primary" href="/olympic/teacher/">Giảng viên</a>':''}${admin()?'<a href="/olympic/admin/">Admin</a>':''}</div></header><div class="oly-content" id="olyContent"></div><footer class="oly-footer"><span>© 2026 AI-CLO OLYMPIC · PTITHCM</span><nav><a href="/">Trang chủ</a><a href="/app.html">AI-CLO</a><a href="/huong-dan.html">Hướng dẫn</a></nav></footer></main></div><dialog class="oly-dialog" id="olyDialog"><div class="oly-dialog-head"><h3 id="olyDialogTitle"></h3><button type="button" id="olyDialogClose">×</button></div><div class="oly-dialog-body" id="olyDialogBody"></div></dialog><div class="oly-toast" id="olyToast"></div>`;
- $('#olyMenu').onclick=()=>{$('#olySide').classList.add('open');$('#olyOverlay').classList.add('show')};
- $('#olyOverlay').onclick=()=>{$('#olySide').classList.remove('open');$('#olyOverlay').classList.remove('show')};
- $('#olyDialogClose').onclick=()=>$('#olyDialog').close();
- $('#olyLoginOpen')?.addEventListener('click',loginDialog);
- $('#olyLogout')?.addEventListener('click',async()=>{await db?.auth.signOut();location.href='/olympic/'});
+
+function buildShell(){
+  if(shellReady)return;
+  document.body.innerHTML=`<div class="oly-shell">
+    <aside class="oly-sidebar" id="olySide">
+      <a class="oly-brand" href="/olympic/"><span class="oly-mark">∑</span><span class="oly-brand-text"><span class="oly-brand-name">AI<span class="clo">-CLO</span></span><span class="oly-brand-sub">OLYMPIC</span></span></a>
+      <div id="olySubjectSlot"></div>
+      <nav class="oly-nav" id="olyNav"></nav>
+      <div class="oly-side-foot"><div class="oly-user" id="olyUser"></div><div class="oly-side-actions" id="olySideActions"></div></div>
+    </aside>
+    <div class="oly-overlay" id="olyOverlay"></div>
+    <main class="oly-main">
+      <header class="oly-topbar">
+        <button class="oly-menu" id="olyMenu" aria-label="Mở menu">☰</button>
+        <div class="oly-crumb"><small id="olyCrumbSmall"></small><h1 id="olyCrumbTitle"></h1></div>
+        <div class="oly-top-actions" id="olyTopActions"></div>
+      </header>
+      <div class="oly-content" id="olyContent" aria-live="polite"></div>
+      <footer class="oly-footer"><span>© 2026 AI-CLO OLYMPIC · PTITHCM</span><nav><a href="/">Trang chủ</a><a href="/app.html">AI-CLO</a><a href="/huong-dan.html">Hướng dẫn</a></nav></footer>
+    </main>
+  </div>
+  <dialog class="oly-dialog" id="olyDialog"><div class="oly-dialog-head"><h3 id="olyDialogTitle"></h3><button type="button" id="olyDialogClose">×</button></div><div class="oly-dialog-body" id="olyDialogBody"></div></dialog>
+  <div class="oly-toast" id="olyToast"></div>`;
+  shellReady=true;
+  $('#olyMenu').onclick=()=>{$('#olySide').classList.add('open');$('#olyOverlay').classList.add('show')};
+  $('#olyOverlay').onclick=()=>closeMobileNav();
+  $('#olyDialogClose').onclick=()=>$('#olyDialog').close();
+  updateShell();
 }
-function dialog(title,html){$('#olyDialogTitle').textContent=title;$('#olyDialogBody').innerHTML=html;$('#olyDialog').showModal()}
+
+function closeMobileNav(){
+  $('#olySide')?.classList.remove('open');
+  $('#olyOverlay')?.classList.remove('show');
+}
+
+function updateShell(){
+  if(!shellReady)return;
+  const title=labels[page]||labels.home;
+  const subjectName=(state.subject||subjFallback[subjectCode])?.name||'';
+  document.title=routeTitle();
+  $('#olySubjectSlot').innerHTML=subjectName?`<div class="oly-subject-pill">Môn hiện tại · <b>${esc(subjectName)}</b></div>`:'';
+  $('#olyNav').innerHTML=navItems().map(([id,sym,name,url])=>`<a class="${id===page?'active':''}" href="${url}"><span class="symbol">${sym}</span>${name}</a>`).join('');
+  $('#olyCrumbSmall').textContent='AI-CLO OLYMPIC'+(subjectName?' · '+subjectName:'');
+  $('#olyCrumbTitle').textContent=title[0];
+  $('#olyTopActions').innerHTML=`<a class="hide-mobile" href="/olympic/">Olympic</a>${staff()?'<a class="primary" href="/olympic/teacher/">Giảng viên</a>':''}${admin()?'<a href="/olympic/admin/">Admin</a>':''}`;
+  const isAuth=!!state.user;
+  $('#olyUser').innerHTML=isAuth?`<b>${esc(state.profile?.full_name||state.user.email)}</b>${esc(state.profile?.role||'')}`:'<b>Chúa đăng nhập</b>Dùng tài ktoản AI-CLO PTDITHCM';
+  $('#olySideActions').innerHTML=`<a href="/app.html">AI-CLO</a>${isAuth?'<button id="olyLogout">Đăng xuất</button>':'<button id="olyLoginOpen">Đăng nhập</button>'}`;
+  $('#olyLoginOpen')?.addEventListener('click',loginDialog);
+  $('#olyLogout')?.addEventListener('click',logout);
+}
+
+function dialog(title,html){
+  $('#olyDialogTitle').textContent=title;
+  $('#olyDialogBody').innerHTML=html;
+  $('#olyDialog').showModal();
+}
+
 function loginDialog(){
- if(!db)return toast('Không tải được Supabase',true);
- dialog('Đăng nhập AI-CLO OLYMPIC',`<form id="olyLoginForm" class="oly-form-grid"><label class="oly-field wide"><span>Email</span><input class="oly-input" name="email" type="email" autocomplete="email" required></label><label class="oly-field wide"><span>Mật khẩu</span><input class="oly-input" name="password" type="password" autocomplete="current-password" required minlength="6"></label><div class="oly-form-actions"><button class="oly-btn primary">Đăng nhập</button></div></form>`);
- $('#olyLoginForm').onsubmit=async e=>{e.preventDefault();let v=Object.fromEntries(new FormData(e.target));let {error}=await db.auth.signInWithPassword(v);if(error)return fail(error);location.reload()};
+  if(!db)return toast('Không tải được Supabase',true);
+  dialog('Đăng nhập AI-CLO OLYMPIC',`<form id="olyLoginForm" class="oly-form-grid">
+    <label class="oly-field wide"><span>Email</span><input class="oly-input" name="email" type="email" autocomplete="email" required></label>
+    <label class="oly-field wide"><span>Mật khẩu</span><input class="oly-input" name="password" type="password" autocomplete="current-password" required minlength="6"></label>
+    <div class="oly-form-actions"><button class="oly-btn primary">Đăng nhập</button></div>
+  </form>`);
+  $('#olyLoginForm').onsubmit=async e=>{
+    e.preventDefault();
+    const form=e.currentTarget;
+    const btn=form.querySelector('button');
+    btn.disabled=true;
+    const v=Object.fromEntries(new FormData(form));
+    try{
+      const {data,error}=await db.auth.signInWithPassword(v);
+      if(error)throw error;
+      state.user=data.session?.user||null;
+      await loadProfileAndSubjects();
+      $('#olyDialog').close();
+      updateShell();
+      await refreshRoute({scroll:false});
+      toast('Đăng nhập thành công');
+    }catch(error){fail(error);btn.disabled=false}
+  };
 }
+
+async function logout(){
+  if(!db)return;
+  await db.auth.signOut();
+  state.user=null;state.profile=null;state.subjects=[];state.subject=null;clearDataCache();
+  updateShell();
+  await navigateTo('/olympic/',{replace:true,force:true});
+}
+
 function authGate(message='Đăng nhập để sử dụng khu vực Olympic.'){return `<div class="oly-login"><span class="oly-kicker">AI-CLO OLYMPIC</span><h2>Đăng nhập hệ thống</h2><p>${esc(message)}</p><button class="oly-btn primary" id="gateLogin">Đăng nhập bằng tài khoản AI-CLO</button></div>`}
-function wireGate(){ $('#gateLogin')?.addEventListener('click',loginDialog) }
-async function loadProfile(){
- if(!db)return;
- const {data}=await db.auth.getSession();state.user=data.session?.user||null;
- if(state.user){let r=await db.from('profiles').select('id,full_name,email,role,is_active').eq('id',state.user.id).maybeSingle();if(!r.error)state.profile=r.data}
-}
-async function loadSubjects(){
- if(!db||!state.user)return;
- let r=await db.from('olympic_subjects').select('*').order('order_index');if(!r.error)state.subjects=r.data||[];
- state.subject=state.subjects.find(x=>x.code===subjectCode)||null;
-}
-async function loadTree(code=subjectCode){
- const s=state.subjects.find(x=>x.code===code);if(!s)return {sections:[],topics:[]};
- let [a,b]=await Promise.all([db.from('olympic_sections').select('*').eq('subject_id',s.id).order('order_index'),db.from('olympic_topics').select('*').eq('subject_id',s.id).order('order_index')]);
- if(a.error)throw a.error;if(b.error)throw b.error;return {sections:a.data||[],topics:b.data||[]};
-}
-function sectionCards(sections){return sections.length?sections.map((x,i)=>`<div class="oly-card"><span class="arrow">→</span><div class="math-icon">${['A','λ','P','Σ','∫'][i%5]}</div><h3>${esc(x.name)}</h3><p>${esc(x.description||'Nội dung đang được giảng viên biên soạn.')}</p></div>`).join(''):`<div class="oly-panel oly-empty"><span class="symbol">∅</span><b>Chưa có nội dung</b><span>Giảng viên sẽ bổ sung các mục cần học.</span></div>`}
+function wireGate(){$('#gateLogin')?.addEventListener('click',loginDialog)}
 
-async function renderHome(c){
- c.innerHTML=`<section class="oly-hero"><span class="oly-kicker">Mathematics · Training · Competition</span><h2>AI-CLO OLYMPIC</h2><p>Không gian học tập Olympic Toán sinh viên: nội dung cần học, bài giảng toán học, luyện tập và đề thi. Lộ trình học được giảng viên chủ động xây dựng và điều chỉnh.</p><div class="oly-hero-actions"><a class="oly-btn gold" href="/olympic/algebra/">Đại số →</a><a class="oly-btn ghost" href="/olympic/calculus/">Giải tích →</a>${!state.user?'<button class="oly-btn ghost" id="heroLogin">Đăng nhập</button>':''}</div></section><div class="oly-section-head"><div><h2>Chọn môn Olympic</h2><p>Mỗi môn có cây nội dung riêng và các trang chức năng độc lập.</p></div></div><div class="oly-grid two"><a class="oly-card clickable" href="/olympic/algebra/"><span class="arrow">↗</span><div class="math-icon">A</div><h3>Đại số</h3><p>Ma trận, hệ tuyến tính, cấu trúc tuyến tính, đa thức, tổ hợp và các bài toán tổng hợp.</p><div class="meta"><span class="oly-badge">Algebra</span><span class="oly-badge">Olympic</span></div></a><a class="oly-card clickable" href="/olympic/calculus/"><span class="arrow">↗</span><div class="math-icon gold">∫</div><h3>Giải tích</h3><p>Giới hạn, đạo hàm, tích phân, chuỗi, bất đẳng thức và các bài toán giải tích Olympic.</p><div class="meta"><span class="oly-badge recommended">Calculus</span><span class="oly-badge">Olympic</span></div></a></div>${staff()?`<div class="oly-section-head"><div><h2>Khu vực giảng viên</h2><p>Quản lý cây nội dung và biên soạn bài học TeX.</p></div></div><div class="oly-grid two"><a class="oly-card clickable" href="/olympic/teacher/contents/"><div class="math-icon green">≡</div><h3>Quản lý nội dung</h3><p>Thêm, sửa, ẩn/hiện các nhóm và mục kiến thức.</p></a><a class="oly-card clickable" href="/olympic/teacher/lessons/"><div class="math-icon gold">TeX</div><h3>Soạn bài học</h3><p>Trình soạn toán học với định lý, ví dụ, chứng minh và xem trước.</p></a></div>`:''}`;
- $('#heroLogin')?.addEventListener('click',loginDialog);
+async function loadSession(){
+  if(!db)return;
+  const {data}=await db.auth.getSession();
+  state.user=data.session?.user||null;
 }
-async function renderSubject(c){
- const s=state.subject||subjFallback[subjectCode];
- let sections=[];if(state.user&&state.subject){try{sections=(await loadTree()).sections}catch(e){fail(e)}}
- c.innerHTML=`<section class="oly-hero"><span class="oly-kicker">AI-CLO OLYMPIC · ${esc(s.name)}</span><h2>${subjectCode==='algebra'?'A, λ, P(x)':'f′(x), ∫, ∑'}</h2><p>${esc(s.description||s.desc||'Không gian học tập Olympic.')}</p><div class="oly-hero-actions"><a class="oly-btn gold" href="${subjectFeatureUrl('contents')}">Nội dung cần học →</a><a class="oly-btn ghost" href="${subjectFeatureUrl('lessons')}">Bài học</a></div></section><div class="oly-section-head"><div><h2>Các chức năng</h2><p>Mỗi chức năng có một trang con riêng.</p></div></div><div class="oly-grid"><a class="oly-card clickable" href="${subjectFeatureUrl('contents')}"><div class="math-icon">≡</div><h3>Nội dung học</h3><p>Cây chuyên đề và các mục kiến thức cần học.</p></a><a class="oly-card clickable" href="${subjectFeatureUrl('lessons')}"><div class="math-icon gold">∑</div><h3>Bài học</h3><p>Bài giảng có công thức, định lý, ví dụ và chứng minh.</p></a><a class="oly-card clickable" href="${subjectFeatureUrl('practice')}"><div class="math-icon green">✓</div><h3>Luyện tập</h3><p>Trắc nghiệm và bài tập theo từng chuyên đề.</p></a><a class="oly-card clickable" href="${subjectFeatureUrl('problems')}"><div class="math-icon">?</div><h3>Bài toán</h3><p>Ngân hàng bài toán Olympic chọn lọc.</p></a><a class="oly-card clickable" href="${subjectFeatureUrl('tests')}"><div class="math-icon gold">π</div><h3>Đề luyện</h3><p>Đề tổng hợp và thi thử theo cấu hình giảng viên.</p></a><a class="oly-card clickable" href="${subjectFeatureUrl('results')}"><div class="math-icon green">↗</div><h3>Kết quả</h3><p>Theo dõi tiến độ học và kết quả luyện tập.</p></a></div>${sections.length?`<div class="oly-section-head"><div><h2>Nhóm nội dung hiện có</h2><p>Danh mục có thể được giảng viên thay đổi.</p></div></div><div class="oly-grid">${sectionCards(sections)}</div>`:''}`;
-}
-async function renderContents(c){
- if(!state.user){c.innerHTML=authGate();return wireGate()}
- if(!state.subject){c.innerHTML='<div class="oly-panel oly-empty"><b>Không tìm thấy môn Olympic.</b></div>';return}
- let {sections,topics}=await loadTree();
- c.innerHTML=`<div class="oly-section-head"><div><h2>${esc(state.subject.name)} · Nội dung cần học</h2><p>Đây là cây nội dung, không phải lộ trình tuần cố định. Giảng viên có thể điều chỉnh bất cứ lúc nào.</p></div>${staff()?'<a class="oly-btn primary" href="/olympic/teacher/contents/">Quản lý nội dung</a>':''}</div><div class="oly-content-tree">${sections.map((s,i)=>{let tt=topics.filter(t=>t.section_id===s.id&&t.is_visible);return `<section class="oly-content-group"><header><span class="group-index">${String(i+1).padStart(2,'0')}</span><div><h3>${esc(s.name)}</h3><p>${esc(s.description||'')}</p></div></header><div class="oly-topic-list">${tt.length?tt.map(t=>`<div class="oly-topic"><div><h4>${esc(t.title)}</h4><p>${esc(t.description||'')}</p></div><div class="oly-topic-actions"><span class="oly-badge ${esc(t.importance)}">${importanceLabel(t.importance)}</span>${staff()?`<span class="oly-badge ${esc(t.status)}">${statusLabel(t.status)}</span>`:''}</div></div>`).join(''):`<div class="oly-empty"><span class="symbol">∅</span><b>Chưa có mục chi tiết</b><span>Giảng viên có thể thêm các mục nội dung bên trong nhóm này.</span></div>`}</div></section>`}).join('')||'<div class="oly-panel oly-empty"><b>Chưa có cây nội dung.</b></div>'}</div>`;
-}
-function importanceLabel(v){return ({required:'Bắt buộc',recommended:'Khuyến nghị',advanced:'Nâng cao'})[v]||v}
-function statusLabel(v){return ({draft:'Nháp',editing:'Đang biên soạn',approved:'Đã duyệt',teaching:'Đang dạy',published:'Đã xuất bản',archived:'Lưu trữ'})[v]||v}
-async function renderLessons(c){
- if(!state.user){c.innerHTML=authGate();return wireGate()}
- let id=new URLSearchParams(location.search).get('id');
- if(id){let r=await db.from('olympic_lessons').select('*,olympic_topics(title)').eq('id',id).maybeSingle();if(r.error)return fail(r.error);if(!r.data){c.innerHTML='<div class="oly-panel oly-empty"><b>Không tìm thấy bài học.</b></div>';return}let x=r.data;c.innerHTML=`<div class="oly-toolbar"><a class="oly-btn" href="${subjectFeatureUrl('lessons')}">← Danh sách bài học</a></div><article class="oly-panel"><span class="oly-badge published">${statusLabel(x.status)}</span><h2 style="font-family:Cambria Math,Georgia,serif;font-size:30px;margin-bottom:6px">${esc(x.title)}</h2><p style="color:#627d98">${esc(x.summary||'')}</p><div class="oly-preview" style="border:0;padding:10px 0 0;min-height:0" id="lessonBody">${renderTex(x.content_tex)}</div></article>`;return typeset($('#lessonBody'))}
- let r=await db.from('olympic_lessons').select('*,olympic_topics(title)').eq('subject_id',state.subject.id).eq('status','published').eq('is_visible',true).order('order_index');if(r.error)return fail(r.error);let list=r.data||[];
- c.innerHTML=`<div class="oly-section-head"><div><h2>Bài học ${esc(state.subject.name)}</h2><p>Bài giảng toán học do giảng viên xuất bản.</p></div>${staff()?'<a class="oly-btn primary" href="/olympic/teacher/lessons/">Soạn bài học</a>':''}</div><div class="oly-grid">${list.length?list.map(x=>`<a class="oly-card clickable" href="?id=${x.id}"><span class="arrow">→</span><div class="math-icon">∑</div><h3>${esc(x.title)}</h3><p>${esc(x.summary||'')}</p><div class="meta">${x.olympic_topics?.title?`<span class="oly-badge">${esc(x.olympic_topics.title)}</span>`:''}<span class="oly-badge published">Đã xuất bản</span></div></a>`).join(''):`<div class="oly-panel oly-empty"><span class="symbol">∅</span><b>Chưa có bài học được xuất bản</b><span>Giảng viên có thể tạo bài bằng trình soạn TeX.</span></div>`}</div>`;
-}
-function renderComing(c,kind){
- if(!state.user){c.innerHTML=authGate();return wireGate()}
- const m={practice:['Luyện tập trắc nghiệm','✓','Trang này dành cho trắc nghiệm, điền đáp số và bài luyện theo chuyên đề.'],problems:['Ngân hàng bài toán','?','Kho bài toán Olympic với gợi ý, lời giải và nguồn bài.'],tests:['Đề luyện & thi thử','π','Tạo đề tổng hợp từ ngân hàng bài toán và theo dõi lượt làm.'],results:['Kết quả học tập','↗','Theo dõi tiến độ, điểm luyện và các chuyên đề đã hoàn thành.']}[kind];
- c.innerHTML=`<section class="oly-hero"><span class="oly-kicker">${esc(state.subject?.name||'Olympic')}</span><h2>${m[1]} ${m[0]}</h2><p>${m[2]}</p></section><div class="oly-section-head"><div><h2>Khung chức năng đã sẵn sàng</h2><p>V1 ưu tiên cây nội dung và trình soạn bài học; dữ liệu ${m[0].toLowerCase()} sẽ được nối ở bước tiếp theo.</p></div></div><div class="oly-grid"><div class="oly-card"><div class="math-icon">1</div><h3>Theo chuyên đề</h3><p>Lọc và tổ chức theo cây nội dung của từng môn.</p></div><div class="oly-card"><div class="math-icon gold">2</div><h3>Phân quyền</h3><p>Giảng viên quản lý môn được cấp quyền; sinh viên chỉ dùng nội dung đã công bố.</p></div><div class="oly-card"><div class="math-icon green">3</div><h3>Không khóa lộ trình</h3><p>Giảng viên tự xác nhận thứ tự học sau, không cố định theo tuần trong mã nguồn.</p></div></div>`;
-}
-async function teacherSubjectSelect(selected){
- let allowed=state.subjects;
- if(!admin()){
-   let r=await db.from('olympic_teacher_subjects').select('subject_id').eq('profile_id',state.user.id);if(!r.error){let ids=new Set((r.data||[]).map(x=>x.subject_id));allowed=state.subjects.filter(x=>ids.has(x.id))}
- }
- return {allowed,html:`<select id="teacherSubject" class="oly-select">${allowed.map(s=>`<option value="${s.code}" ${s.code===selected?'selected':''}>${esc(s.name)}</option>`).join('')}</select>`};
-}
-async function renderTeacher(c){
- if(!state.user){c.innerHTML=authGate('Đăng nhập bằng tài khoản giảng viên hoặc quản trị viên.');return wireGate()}
- if(!staff()){c.innerHTML='<div class="oly-panel oly-empty"><b>Bạn không có quyền giảng viên.</b></div>';return}
- c.innerHTML=`<section class="oly-hero"><span class="oly-kicker">Teacher workspace</span><h2>Biên soạn Olympic</h2><p>Quản lý nội dung theo môn, soạn bài học TeX và chuẩn bị ngân hàng luyện tập. Lộ trình học không bị khóa theo số tuần.</p></section><div class="oly-section-head"><div><h2>Công cụ giảng viên</h2></div></div><div class="oly-grid"><a class="oly-card clickable" href="/olympic/teacher/contents/"><div class="math-icon">≡</div><h3>Nội dung</h3><p>Nhóm kiến thức và các mục cần học.</p></a><a class="oly-card clickable" href="/olympic/teacher/lessons/"><div class="math-icon gold">TeX</div><h3>Bài học</h3><p>Soạn và xuất bản bài giảng toán học.</p></a><a class="oly-card clickable" href="/olympic/teacher/problems/"><div class="math-icon">?</div><h3>Bài toán</h3><p>Ngân hàng bài toán và trắc nghiệm.</p></a><a class="oly-card clickable" href="/olympic/teacher/tests/"><div class="math-icon green">π</div><h3>Đề luyện</h3><p>Cấu hình đề luyện và thi thử.</p></a><a class="oly-card clickable" href="/olympic/teacher/students/"><div class="math-icon">♙</div><h3>Sinh viên</h3><p>Theo dõi tiến độ và kết quả.</p></a></div>`;
-}
-async function renderTeacherContents(c){
- if(!state.user){c.innerHTML=authGate();return wireGate()}if(!staff()){c.innerHTML='<div class="oly-panel oly-empty"><b>Không có quyền truy cập.</b></div>';return}
- let qs=new URLSearchParams(location.search),code=qs.get('subject')||'algebra';let sel=await teacherSubjectSelect(code);if(!sel.allowed.length){c.innerHTML='<div class="oly-panel oly-empty"><b>Chưa được phân quyền môn Olympic.</b></div>';return}if(!sel.allowed.some(x=>x.code===code))code=sel.allowed[0].code;let s=sel.allowed.find(x=>x.code===code);let tree=await loadTree(code);
- c.innerHTML=`<div class="oly-toolbar"><div class="grow">${sel.html}</div><button class="oly-btn" id="addSection">+ Nhóm nội dung</button><button class="oly-btn primary" id="addTopic">+ Mục nội dung</button></div><div class="oly-content-tree" id="manageTree">${tree.sections.map((sec,i)=>{let tt=tree.topics.filter(t=>t.section_id===sec.id);return `<section class="oly-content-group"><header><span class="group-index">${String(i+1).padStart(2,'0')}</span><div style="flex:1"><h3>${esc(sec.name)}</h3><p>${esc(sec.description||'')}</p></div><div class="oly-topic-actions"><button class="oly-btn small" data-edit-section="${sec.id}">Sửa nhóm</button></div></header><div class="oly-topic-list">${tt.length?tt.map(t=>`<div class="oly-topic"><div><h4>${esc(t.title)}</h4><p>${esc(t.description||'')}</p></div><div class="oly-topic-actions"><span class="oly-badge ${t.importance}">${importanceLabel(t.importance)}</span><span class="oly-badge ${t.status}">${statusLabel(t.status)}</span><button class="oly-btn small" data-edit-topic="${t.id}">Sửa</button><button class="oly-btn small danger" data-del-topic="${t.id}">Xóa</button></div></div>`).join(''):`<div class="oly-empty"><b>Chưa có mục nội dung</b></div>`}</div></section>`}).join('')}</div>`;
- $('#teacherSubject').value=code;$('#teacherSubject').onchange=e=>location.href=`?subject=${encodeURIComponent(e.target.value)}`;
- $('#addSection').onclick=()=>sectionForm(s,null);$('#addTopic').onclick=()=>topicForm(s,tree.sections,null);
- $('#manageTree').onclick=e=>{let b=e.target.closest('button');if(!b)return;if(b.dataset.editSection)sectionForm(s,tree.sections.find(x=>x.id===b.dataset.editSection));if(b.dataset.editTopic)topicForm(s,tree.sections,tree.topics.find(x=>x.id===b.dataset.editTopic));if(b.dataset.delTopic)deleteTopic(b.dataset.delTopic)};
-}
-function sectionForm(subject,sec){dialog(sec?'Sửa nhóm nội dung':'Thêm nhóm nội dung',`<form id="sectionForm" class="oly-form-grid"><label class="oly-field wide"><span>Tên nhóm</span><input class="oly-input" name="name" required value="${esc(sec?.name||'')}"></label><label class="oly-field wide"><span>Mô tả</span><textarea class="oly-textarea" name="description">${esc(sec?.description||'')}</textarea></label><label class="oly-field"><span>Thứ tự</span><input class="oly-input" name="order_index" type="number" value="${sec?.order_index??10}"></label><label class="oly-field"><span>Hiển thị</span><select class="oly-select" name="is_visible"><option value="true" ${sec?.is_visible!==false?'selected':''}>Có</option><option value="false" ${sec?.is_visible===false?'selected':''}>Không</option></select></label><div class="oly-form-actions"><button class="oly-btn primary">Lưu</button></div></form>`);$('#sectionForm').onsubmit=async e=>{e.preventDefault();let v=Object.fromEntries(new FormData(e.target));v.subject_id=subject.id;v.order_index=Number(v.order_index)||0;v.is_visible=v.is_visible==='true';let r=sec?await db.from('olympic_sections').update(v).eq('id',sec.id):await db.from('olympic_sections').insert(v);if(r.error)return fail(r.error);toast('Đã lưu nhóm nội dung');setTimeout(()=>location.reload(),300)}}
-function topicForm(subject,sections,t){dialog(t?'Sửa mục nội dung':'Thêm mục nội dung',`<form id="topicForm" class="oly-form-grid"><label class="oly-field wide"><span>Tên mục</span><input class="oly-input" name="title" required value="${esc(t?.title||'')}"></label><label class="oly-field"><span>Nhóm</span><select class="oly-select" name="section_id"><option value="">Chưa phân nhóm</option>${sections.map(s=>`<option value="${s.id}" ${t?.section_id===s.id?'selected':''}>${esc(s.name)}</option>`).join('')}</select></label><label class="oly-field"><span>Mức</span><select class="oly-select" name="importance">${['required','recommended','advanced'].map(v=>`<option value="${v}" ${t?.importance===v?'selected':''}>${importanceLabel(v)}</option>`).join('')}</select></label><label class="oly-field"><span>Trạng thái</span><select class="oly-select" name="status">${['draft','editing','approved','teaching'].map(v=>`<option value="${v}" ${t?.status===v?'selected':''}>${statusLabel(v)}</option>`).join('')}</select></label><label class="oly-field"><span>Thứ tự</span><input class="oly-input" name="order_index" type="number" value="${t?.order_index??10}"></label><label class="oly-field wide"><span>Mô tả</span><textarea class="oly-textarea" name="description">${esc(t?.description||'')}</textarea></label><label class="oly-field"><span>Hiển thị</span><select class="oly-select" name="is_visible"><option value="true" ${t?.is_visible!==false?'selected':''}>Có</option><option value="false" ${t?.is_visible===false?'selected':''}>Không</option></select></label><div class="oly-form-actions"><button class="oly-btn primary">Lưu</button></div></form>`);$('#topicForm').onsubmit=async e=>{e.preventDefault();let v=Object.fromEntries(new FormData(e.target));v.subject_id=subject.id;v.section_id=v.section_id||null;v.order_index=Number(v.order_index)||0;v.is_visible=v.is_visible==='true';v.updated_by=state.user.id;if(!t)v.created_by=state.user.id;let r=t?await db.from('olympic_topics').update(v).eq('id',t.id):await db.from('olympic_topics').insert(v);if(r.error)return fail(r.error);toast('Đã lưu mục nội dung');setTimeout(()=>location.reload(),300)}}
-async function deleteTopic(id){if(!confirm('Xóa mục nội dung này? Bài học đang liên kết sẽ không bị xóa.'))return;let r=await db.from('olympic_topics').delete().eq('id',id);if(r.error)return fail(r.error);location.reload()}
 
-async function renderTeacherLessons(c){
- if(!state.user){c.innerHTML=authGate();return wireGate()}if(!staff()){c.innerHTML='<div class="oly-panel oly-empty"><b>Không có quyền truy cập.</b></div>';return}
- let qs=new URLSearchParams(location.search),code=qs.get('subject')||'algebra',editId=qs.get('edit');let sel=await teacherSubjectSelect(code);if(!sel.allowed.length){c.innerHTML='<div class="oly-panel oly-empty"><b>Chưa được phân quyền môn Olympic.</b></div>';return}if(!sel.allowed.some(x=>x.code===code))code=sel.allowed[0].code;let s=sel.allowed.find(x=>x.code===code);let tree=await loadTree(code);
- if(editId==='new'||editId){let lesson=null;if(editId!=='new'){let q=await db.from('olympic_lessons').select('*').eq('id',editId).maybeSingle();if(q.error)return fail(q.error);lesson=q.data}return lessonEditor(c,s,tree.topics,lesson,code)}
- let r=await db.from('olympic_lessons').select('*,olympic_topics(title)').eq('subject_id',s.id).order('updated_at',{ascending:false});if(r.error)return fail(r.error);let list=r.data||[];
- c.innerHTML=`<div class="oly-toolbar"><div class="grow">${sel.html}</div><a class="oly-btn primary" href="?subject=${encodeURIComponent(code)}&edit=new">+ Bài học</a></div><div class="oly-panel oly-table-wrap"><table class="oly-table"><thead><tr><th>Bài học</th><th>Mục nội dung</th><th>Trạng thái</th><th>Cập nhật</th><th></th></tr></thead><tbody>${list.length?list.map(x=>`<tr><td><b>${esc(x.title)}</b><br><span style="color:#829ab1">${esc(x.summary||'')}</span></td><td>${esc(x.olympic_topics?.title||'—')}</td><td><span class="oly-badge ${x.status}">${statusLabel(x.status)}</span></td><td>${new Date(x.updated_at).toLocaleDateString('vi-VN')}</td><td><a class="oly-btn small" href="?subject=${encodeURIComponent(code)}&edit=${x.id}">Sửa</a></td></tr>`).join(''):'<tr><td colspan="5"><div class="oly-empty"><b>Chưa có bài học</b></div></td></tr>'}</tbody></table></div>`;$('#teacherSubject').value=code;$('#teacherSubject').onchange=e=>location.href=`?subject=${encodeURIComponent(e.target.value)}`;
-}
-function lessonEditor(c,subject,topics,x,code){
- const defaultTex=`# ${x?.title||'Tên bài học'}\n\nGiới thiệu ngắn về nội dung bài học. Có thể nhập công thức như $A^n$ hoặc $$\\det(A-\\lambda I)=0.$$\n\n\\begin{theorem}\nPhát biểu định lý tại đây.\n\\end{theorem}\n\n\\begin{example}\nVí dụ minh họa.\n\\end{example}\n\n\\begin{proof}\nTrình bày chứng minh.\n\\end{proof}`;
- c.innerHTML=`<div class="oly-toolbar"><a class="oly-btn" href="?subject=${encodeURIComponent(code)}">← Danh sách</a><div class="grow"></div><button class="oly-btn primary" id="saveLesson">Lưu bài học</button></div><div class="oly-panel"><div class="oly-form-grid"><label class="oly-field wide"><span>Tiêu đề</span><input id="lessonTitle" class="oly-input" value="${esc(x?.title||'')}"></label><label class="oly-field wide"><span>Mô tả ngắn</span><input id="lessonSummary" class="oly-input" value="${esc(x?.summary||'')}"></label><label class="oly-field"><span>Mục nội dung</span><select id="lessonTopic" class="oly-select"><option value="">Chưa gắn mục</option>${topics.map(t=>`<option value="${t.id}" ${x?.topic_id===t.id?'selected':''}>${esc(t.title)}</option>`).join('')}</select></label><label class="oly-field"><span>Trạng thái</span><select id="lessonStatus" class="oly-select"><option value="draft" ${x?.status!=='published'?'selected':''}>Nháp</option><option value="published" ${x?.status==='published'?'selected':''}>Xuất bản</option><option value="archived" ${x?.status==='archived'?'selected':''}>Lưu trữ</option></select></label></div><div class="oly-section-head"><div><h3>Trình soạn toán học</h3><p>Hỗ trợ LaTeX trong $...$, $$...$$ và các môi trường theorem, lemma, definition, example, proof, note, exercise.</p></div></div><div class="oly-editor"><div class="oly-editor-pane"><div class="oly-editor-toolbar" id="texToolbar"><button data-snippet="# Tiêu đề\n">H1</button><button data-snippet="## Mục nhỏ\n">H2</button><button data-env="definition">Định nghĩa</button><button data-env="theorem">Định lý</button><button data-env="lemma">Bổ đề</button><button data-env="example">Ví dụ</button><button data-env="proof">Chứng minh</button><button data-env="note">Chú ý</button><button data-env="exercise">Bài tập</button><button data-snippet="$$\\n\\begin{pmatrix}a&b\\\\c&d\\end{pmatrix}\\n$$">Ma trận</button></div><textarea id="lessonTex" class="oly-textarea">${esc(x?.content_tex||defaultTex)}</textarea></div><div class="oly-editor-pane"><div class="oly-preview" id="lessonPreview"></div></div></div></div>`;
- const ta=$('#lessonTex'),preview=$('#lessonPreview');let timer;const draw=()=>{preview.innerHTML=renderTex(ta.value);clearTimeout(timer);timer=setTimeout(()=>typeset(preview),180)};draw();ta.addEventListener('input',draw);$('#texToolbar').onclick=e=>{let b=e.target.closest('button');if(!b)return;let sn=b.dataset.snippet||'',env=b.dataset.env;if(env)sn=`\\begin{${env}}\nNội dung ${env}.\n\\end{${env}}`;insertAtCursor(ta,sn);draw()};
- $('#saveLesson').onclick=async()=>{let title=$('#lessonTitle').value.trim();if(!title)return toast('Nhập tiêu đề bài học',true);let status=$('#lessonStatus').value,v={subject_id:subject.id,topic_id:$('#lessonTopic').value||null,title,summary:$('#lessonSummary').value.trim(),content_tex:ta.value,status,is_visible:true,updated_by:state.user.id,published_at:status==='published'?(x?.published_at||new Date().toISOString()):x?.published_at||null};if(!x)v.created_by=state.user.id;let r=x?await db.from('olympic_lessons').update(v).eq('id',x.id).select('id').single():await db.from('olympic_lessons').insert(v).select('id').single();if(r.error)return fail(r.error);toast('Đã lưu bài học');setTimeout(()=>location.href=`?subject=${encodeURIComponent(code)}&edit=${r.data.id}`,350)};
-}
-function insertAtCursor(ta,text){let a=ta.selectionStart??ta.value.length,b=ta.selectionEnd??a;ta.value=ta.value.slice(0,a)+text+ta.value.slice(b);ta.focus();ta.selectionStart=ta.selectionEnd=a+text.length;ta.dispatchEvent(new Event('input'))}
-function renderTex(raw=''){
- let text=esc(raw),blocks=[];
- const envs={theorem:'Định lý',lemma:'Bổ đề',definition:'Định nghĩa',example:'Ví dụ',proof:'Chứng minh',note:'Chú ý',exercise:'Bài tập'};
- for(const [env,label] of Object.entries(envs)){
-  const re=new RegExp('\\\\begin\\{'+env+'\\}([\\s\\S]*?)\\\\end\\{'+env+'\\}','gi');
-  text=text.replace(re,(_,body)=>{let i=blocks.length,cls=['definition','example','proof','note','exercise'].includes(env)?env:'';blocks.push(`<div class="oly-theorem ${cls}"><div class="oly-theorem-title">${label}</div>${body.trim().replace(/\n/g,'<br>')}</div>`);return `@@OLYBLOCK${i}@@`})
- }
- let parts=text.split(/\n{2,}/).map(x=>x.trim()).filter(Boolean).map(p=>{
-   let m=p.match(/^@@OLYBLOCK(\d+)@@$/);if(m)return blocks[Number(m[1])];
-   if(/^###\s+/.test(p))return `<h3>${p.replace(/^###\s+/,'')}</h3>`;
-   if(/^##\s+/.test(p))return `<h2>${p.replace(/^##\s+/,'')}</h2>`;
-   if(/^#\s+/.test(p))return `<h1>${p.replace(/^#\s+/,'')}</h1>`;
-   return `<p>${p.replace(/\n/g,'<br>')}</p>`;
- }).join('');
- return parts.replace(/@@OLYBLOCK(\d+)@@/g,(_,i)=>blocks[Number(i)]||'');
-}
-async function renderTeacherPlaceholder(c,kind){if(!state.user){c.innerHTML=authGate();return wireGate()}if(!staff()){c.innerHTML='<div class="oly-panel oly-empty"><b>Không có quyền truy cập.</b></div>';return}let m={teacherProblems:['Ngân hàng bài toán','?', 'V1 đã tách trang riêng. Bước tiếp theo sẽ nối câu trắc nghiệm, điền đáp số, tự luận, gợi ý và lời giải.'],teacherTests:['Đề luyện','π','Trang cấu hình đề luyện/thi thử sẽ dùng dữ liệu Olympic riêng, không ảnh hưởng ngân hàng CLO hiện tại.'],teacherStudents:['Theo dõi sinh viên','♙','Trang này sẽ tổng hợp tiến độ học, lượt luyện và kết quả theo chuyên đề.']}[kind];c.innerHTML=`<section class="oly-hero"><span class="oly-kicker">Teacher workspace</span><h2>${m[1]} ${m[0]}</h2><p>${m[2]}</p></section><div class="oly-section-head"><div><h2>Trang con đã được tách riêng</h2><p>Có thể phát triển độc lập mà không làm phình một file Olympic duy nhất.</p></div></div>`}
-async function renderAdmin(c){
- if(!state.user){c.innerHTML=authGate();return wireGate()}if(!admin()){c.innerHTML='<div class="oly-panel oly-empty"><b>Chỉ Admin được truy cập.</b></div>';return}
- let [p,a]=await Promise.all([db.from('profiles').select('id,full_name,email,role,is_active').in('role',['admin','teacher','lecturer','giangvien']).order('full_name'),db.from('olympic_teacher_subjects').select('*')]);if(p.error)return fail(p.error);if(a.error)return fail(a.error);let assignments=a.data||[];
- c.innerHTML=`<div class="oly-section-head"><div><h2>Phân quyền giảng viên theo môn</h2><p>Giảng viên chỉ quản lý môn được cấp; Admin quản lý cả hai môn.</p></div></div><div class="oly-panel oly-table-wrap"><table class="oly-table"><thead><tr><th>Giảng viên</th>${state.subjects.map(s=>`<th>${esc(s.name)}</th>`).join('')}</tr></thead><tbody>${(p.data||[]).map(u=>`<tr><td><b>${esc(u.full_name)}</b><br><span style="color:#829ab1">${esc(u.email)} · ${esc(u.role)}</span></td>${state.subjects.map(s=>{let yes=u.role==='admin'||assignments.some(x=>x.profile_id===u.id&&x.subject_id===s.id);return `<td>${u.role==='admin'?'<span class="oly-badge approved">Toàn quyền</span>':`<label><input type="checkbox" data-assign-profile="${u.id}" data-assign-subject="${s.id}" ${yes?'checked':''}> Quản lý</label>`}</td>`}).join('')}</tr>`).join('')}</tbody></table></div>`;
- $$('[data-assign-profile]').forEach(ch=>ch.onchange=async()=>{let profile_id=ch.dataset.assignProfile,subject_id=ch.dataset.assignSubject;if(ch.checked){let r=await db.from('olympic_teacher_subjects').upsert({profile_id,subject_id,created_by:state.user.id},{onConflict:'subject_id,profile_id'});if(r.error){ch.checked=false;return fail(r.error)}}else{let r=await db.from('olympic_teacher_subjects').delete().eq('profile_id',profile_id).eq('subject_id',subject_id);if(r.error){ch.checked=true;return fail(r.error)}}toast('Đã cập nhật phân quyền')});
-}
-async function run(){
- try{await loadProfile();await loadSubjects();shell();const c=$('#olyContent');const fn={home:renderHome,subject:renderSubject,contents:renderContents,lessons:renderLessons,practice:x=>renderComing(x,'practice'),problems:x=>renderComing(x,'problems'),tests:x=>renderComing(x,'tests'),results:x=>renderComing(x,'results'),teacher:renderTeacher,teacherContents:renderTeacherContents,teacherLessons:renderTeacherLessons,teacherProblems:x=>renderTeacherPlaceholder(x,'teacherProblems'),teacherTests:x=>renderTeacherPlaceholder(x,'teacherTests'),teacherStudents:x=>renderTeacherPlaceholder(x,'teacherStudents'),admin:renderAdmin}[page]||renderHome;await fn(c);typeset(c)}catch(e){fail(e);let c=$('#olyContent');if(c)c.innerHTML=`<div class="oly-panel"><b>Không thể tải trang Olympic.</b><p>${esc(e.message||e)}</p></div>`}}
-
-document.addEventListener('DOMContentLoaded',run);
-})();
+async function loadProfileAndSubjects(){
+  state.profile=null;state.subjects=[];state.subject=null;
+  if(!db
