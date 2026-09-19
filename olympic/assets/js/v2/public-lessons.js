@@ -15,7 +15,7 @@ async function renderLessons(c){
     return;
   }
   const list=await loadPublishedLessons();
-  c.innerHTML=`<div class="oly-section-head"><div><h2>Bài học ${esc(state.subject.name)}</h2><p>Bài giảng toán học do giảng viên xuất bản.</p></div>${staff()?'<a class="oly-btn primary" href="/olympic/teacher/lessons/">Soạn bài học</a>':''}</div><div class="oly-grid">${list.length?list.map(x=>`<a class="oly-card clickable" href="?id=${x.id}"><span class="arrow">→</span><div class="math-icon">∑</div><h3>${esc(x.title)}</h3><p>${esc(x.summary||'')}</p><div class="meta">${x.topic?.title?`<span class="oly-badge">${esc(x.topic.title)}</span>`:''}<span class="oly-badge published">Đã xuất bản</span></div></a>`).join(''):`<div class="oly-panel oly-empty"><span class="symbol">∅</span><b>Chưa có bài học được xuất bản</b><span>Giảng viên có thể tạo bài bằng trình soạn TeX.</span></div>`}</div>`;
+  c.innerHTML=`<div class="oly-section-head"><div><h2>Bài học ${esc(state.subject.name)}</h2><p>Bài giảng toán học do giảng viên xuất bản.</p></div>${staff()?`<a class="oly-btn primary" href="/olympic/teacher/lessons/?subject=${encodeURIComponent(subjectCode)}">Soạn bài học</a>`:''}</div><div class="oly-grid">${list.length?list.map(x=>`<a class="oly-card clickable" href="?id=${x.id}"><span class="arrow">→</span><div class="math-icon">∑</div><h3>${esc(x.title)}</h3><p>${esc(x.summary||'')}</p><div class="meta">${x.topic?.title?`<span class="oly-badge">${esc(x.topic.title)}</span>`:''}<span class="oly-badge published">Đã xuất bản</span></div></a>`).join(''):`<div class="oly-panel oly-empty"><span class="symbol">∅</span><b>Chưa có bài học được xuất bản</b><span>Giảng viên có thể tạo bài bằng trình soạn TeX.</span></div>`}</div>`;
 }
 
 function renderComing(c,kind){
@@ -30,5 +30,5 @@ async function teacherSubjectSelect(selected){
     const r=await db.from('olympic_teacher_subjects').select('subject_id').eq('profile_id',state.user.id);
     if(!r.error){const ids=new Set((r.data||[]).map(x=>x.subject_id));allowed=state.subjects.filter(x=>ids.has(x.id))}
   }
-  return {allowed,html:`<select id="teacherSubject" class="oly-select">${allowed.map(s=>`<option value="${s.code}" ${s.code===selected?'selected':''}>${esc(s.name)}</option>`).join('')}</select>`};
+  return {allowed,html:`<label class="oly-field" style="max-width:280px"><span>Môn Olympic đang quản lý</span><select id="teacherSubject" class="oly-select">${allowed.map(s=>`<option value="${s.code}" ${s.code===selected?'selected':''}>${esc(s.name)}</option>`).join('')}</select></label>`};
 }
