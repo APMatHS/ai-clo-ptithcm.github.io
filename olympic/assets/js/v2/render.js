@@ -10,8 +10,8 @@ const renderers={
   teacher:renderTeacher,
   teacherContents:renderTeacherContents,
   teacherLessons:renderTeacherLessons,
-  teacherProblems:c=>renderTeacherPlaceholder(c,'teacherProblems'),
-  teacherTests:c=>renderTeacherPlaceholder(c,'teacherTests'),
+  teacherProblems:renderTeacherProblems,
+  teacherTests:renderTeacherTests,
   teacherStudents:c=>renderTeacherPlaceholder(c,'teacherStudents'),
   admin:renderAdmin
 };
