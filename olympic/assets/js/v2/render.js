@@ -5,7 +5,7 @@ const renderers={
   lessons:renderLessons,
   practice:c=>renderComing(c,'practice'),
   problems:c=>renderComing(c,'problems'),
-  tests:c=>renderComing(c,'tests'),
+  tests:renderTests,
   results:c=>renderComing(c,'results'),
   teacher:renderTeacher,
   teacherContents:renderTeacherContents,
