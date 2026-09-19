@@ -16,8 +16,49 @@ function topicForm(subject,sections,t,code){
   };
 }
 
+async function renumberRows(table,rows,code){
+  for(let i=0;i<rows.length;i++){
+    const r=await db.from(table).update({order_index:(i+1)*10}).eq('id',rows[i].id);
+    if(r.error)throw r.error;
+  }
+  clearDataCache(code);
+}
+
+async function moveSection(id,direction,code,sections){
+  const rows=[...sections].sort((a,b)=>a.order_index-b.order_index||a.name.localeCompare(b.name,'vi'));
+  const i=rows.findIndex(x=>x.id===id),j=i+direction;
+  if(i<0||j<0||j>=rows.length)return;
+  [rows[i],rows[j]]=[rows[j],rows[i]];
+  try{await renumberRows('olympic_sections',rows,code);toast('Đã đổi thứ tự nhóm');await refreshRoute({scroll:false})}catch(e){fail(e)}
+}
+
+async function moveTopic(id,direction,code,topics){
+  const current=topics.find(x=>x.id===id);if(!current)return;
+  const rows=topics.filter(x=>x.section_id===current.section_id).sort((a,b)=>a.order_index-b.order_index||a.title.localeCompare(b.title,'vi'));
+  const i=rows.findIndex(x=>x.id===id),j=i+direction;
+  if(i<0||j<0||j>=rows.length)return;
+  [rows[i],rows[j]]=[rows[j],rows[i]];
+  try{await renumberRows('olympic_topics',rows,code);toast('Đã đổi thứ tự mục');await refreshRoute({scroll:false})}catch(e){fail(e)}
+}
+
+async function toggleTopicVisibility(id,visible,code){
+  const r=await db.from('olympic_topics').update({is_visible:visible,updated_by:state.user.id}).eq('id',id);
+  if(r.error)return fail(r.error);
+  clearDataCache(code);toast(visible?'Đã hiện mục nội dung':'Đã ẩn mục nội dung');refreshRoute({scroll:false});
+}
+
 async function deleteTopic(id,code){
-  if(!confirm('Xóa mục nội dung này? Bài học đang liên kết sẽ không bị xóa.'))return;
+  const [lessons,tests]=await Promise.all([
+    db.from('olympic_lessons').select('id',{count:'exact',head:true}).eq('topic_id',id),
+    db.from('olympic_tests').select('id',{count:'exact',head:true}).eq('topic_id',id)
+  ]);
+  if(lessons.error)return fail(lessons.error);if(tests.error)return fail(tests.error);
+  const childCount=(lessons.count||0)+(tests.count||0);
+  if(childCount>0){
+    if(!confirm(`Mục này đang có ${lessons.count||0} bài học và ${tests.count||0} đề luyện. Không thể xóa an toàn. Bạn có muốn ẩn mục này thay thế?`))return;
+    return toggleTopicVisibility(id,false,code);
+  }
+  if(!confirm('Xóa mục nội dung này? Thao tác không thể hoàn tác.'))return;
   const r=await db.from('olympic_topics').delete().eq('id',id);
   if(r.error)return fail(r.error);clearDataCache(code);toast('Đã xóa mục nội dung');refreshRoute({scroll:false});
 }
