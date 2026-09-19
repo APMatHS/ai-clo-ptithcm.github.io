@@ -1,7 +1,7 @@
 /* AI-CLO OLYMPIC V2 — persistent app shell, soft router, Supabase data layer */
 'use strict';
 
-const APP_VERSION='2.0.0';
+const APP_VERSION='2.0.1';
 const $=(s,p=document)=>p.querySelector(s);
 const $$=(s,p=document)=>[...p.querySelectorAll(s)];
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -82,38 +82,22 @@ function routeFromPath(pathname=location.pathname){
 
 function applyRoute(route){
   page=route.page;
-  subjectCode=route.subjectCode;
-  document.body.dataset.olympicPage=page;
-  if(subjectCode)document.body.dataset.subject=subjectCode;else delete document.body.dataset.subject;
-  state.subject=state.subjects.find(x=>x.code===subjectCode)||null;
+  subjectCode=route.subjectCode||'';
+  state.subject=subjectCode?(state.subjects.find(x=>x.code===subjectCode)||subjFallback[subjectCode]||null):null;
 }
 
 function routeTitle(){
-  const label=(labels[page]||labels.home)[0];
-  const subjectName=(state.subject||subjFallback[subjectCode])?.name;
-  if(subjectCode&&page!=='subject')return `${label} ${subjectName} | AI-CLO OLYMPIC`;
-  if(subjectCode)return `${subjectName} | AI-CLO OLYMPIC`;
-  return `${label} | AI-CLO OLYMPIC`;
+  const l=labels[page]||labels.home;
+  const s=state.subject?.name||subjFallback[subjectCode]?.name;
+  return `${l[0]}${s?' · '+s:''} | AI-CLO OLYMPIC`;
 }
 
-function navItems(){
-  if(page.startsWith('teacher'))return [
-    ['teacher','⌂','Tổng quan','/olympic/teacher/'],
-    ['teacherContents','≡','Nội dung','/olympic/teacher/contents/'],
-    ['teacherLessons','∑','Bài học','/olympic/teacher/lessons/'],
-    ['teacherProblems','?','Bài toán','/olympic/teacher/problems/'],
-    ['teacherTests','✎','Đề luyện','/olympic/teacher/tests/'],
-    ['teacherStudents','♙','Sinh viên','/olympic/teacher/students/']
-  ];
-  if(page==='admin')return [['admin','⚙','Cấu hình','/olympic/admin/']];
-  if(subjectCode)return [
-    ['subject','⌂','Tổng quan',subjectUrl()],
-    ['contents','≡','Nội dung học',subjectFeatureUrl('contents')],
-    ['lessons','∑','Bài học',subjectFeatureUrl('lessons')],
-    ['practice','✓','Luyện tập',subjectFeatureUrl('practice')],
-    ['problems','?','Bài toán',subjectFeatureUrl('problems')],
-    ['tests','✎','Đề luyện',subjectFeatureUrl('tests')],
-    ['results','◫','Kết quả',subjectFeatureUrl('results')]
-  ];
-  return [['home','⌂','Tổng quan','/olympic/']];
+function clearDataCache(code=''){
+  if(!code){state.cache.trees.clear();state.cache.lessons.clear();return}
+  state.cache.trees.delete(code);state.cache.lessons.delete(code);
+}
+
+function typeset(node){
+  if(window.MathJax?.typesetPromise)return MathJax.typesetPromise([node]).catch(console.warn);
+  return Promise.resolve();
 }
