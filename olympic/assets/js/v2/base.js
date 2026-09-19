@@ -1,10 +1,11 @@
 /* AI-CLO OLYMPIC V2 — persistent app shell, soft router, Supabase data layer */
 'use strict';
 
-const APP_VERSION='2.0.2';
+const APP_VERSION='2.0.3';
 const $=(s,p=document)=>p.querySelector(s);
 const $$=(s,p=document)=>[...p.querySelectorAll(s)];
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const normalizeText=v=>String(v??'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/đ/g,'d').replace(/Đ/g,'D').toLowerCase().trim();
 const cfg=window.AICLO_CONFIG||{};
 const db=window.supabase?.createClient?.(cfg.SUPABASE_URL,cfg.SUPABASE_PUBLISHABLE_KEY);
 
@@ -19,7 +20,8 @@ const state={
   subjects:[],
   subject:null,
   dirty:false,
-  cache:{trees:new Map(),lessons:new Map()}
+  cache:{trees:new Map(),lessons:new Map()},
+  ui:{collapsedSections:new Set()}
 };
 
 const labels={
@@ -37,7 +39,7 @@ const labels={
   teacherProblems:['Quản lý bài toán','Ngân hàng bài toán Olympic'],
   teacherTests:['Quản lý đề luyện','Tạo đề luyện và thi thử'],
   teacherStudents:['Sinh viên','Theo dõi hoạt động học tập'],
-  admin:['Cấu hình Olympic','Phân quyền giảng viên theo môn']
+  admin:['Cấu hình Olympic','Phân quyền giảng viên và sinh viên Olympic']
 };
 
 const subjFallback={
@@ -48,12 +50,34 @@ const subjFallback={
 const featurePages=new Set(['contents','lessons','practice','problems','tests','results']);
 const teacherPages={contents:'teacherContents',lessons:'teacherLessons',problems:'teacherProblems',tests:'teacherTests',students:'teacherStudents'};
 const CACHE_TTL=30000;
+const TEACHER_SUBJECT_KEY='aiclo_olympic_teacher_subject';
 
 const role=()=>state.profile?.role||'guest';
 const staff=()=>['admin','teacher','lecturer','giangvien'].includes(role());
 const admin=()=>role()==='admin';
 const subjectUrl=(code=subjectCode)=>`/olympic/${code}/`;
 const subjectFeatureUrl=(feature,code=subjectCode)=>`/olympic/${code}/${feature}/`;
+
+function preferredTeacherSubjectCode(){
+  const query=new URLSearchParams(location.search).get('subject');
+  if(query&&subjFallback[query])return query;
+  if(subjectCode&&subjFallback[subjectCode])return subjectCode;
+  try{
+    const saved=localStorage.getItem(TEACHER_SUBJECT_KEY);
+    if(saved&&subjFallback[saved])return saved;
+  }catch{}
+  return 'algebra';
+}
+
+function rememberTeacherSubject(code){
+  if(!subjFallback[code])return;
+  try{localStorage.setItem(TEACHER_SUBJECT_KEY,code)}catch{}
+}
+
+function teacherUrl(feature='',code=preferredTeacherSubjectCode()){
+  const base=feature?`/olympic/teacher/${feature}/`:'/olympic/teacher/';
+  return `${base}?subject=${encodeURIComponent(code)}`;
+}
 
 function toast(message,bad=false){
   const x=$('#olyToast');
@@ -90,21 +114,25 @@ function applyRoute(route){
 
 function routeTitle(){
   const label=(labels[page]||labels.home)[0];
-  const subjectName=(state.subject||subjFallback[subjectCode])?.name;
-  if(subjectCode&&page!=='subject')return `${label} ${subjectName} | AI-CLO OLYMPIC`;
+  const teacherSubject=page.startsWith('teacher')?state.subjects.find(x=>x.code===preferredTeacherSubjectCode()):null;
+  const subjectName=(teacherSubject||state.subject||subjFallback[subjectCode])?.name;
+  if((subjectCode||page.startsWith('teacher'))&&subjectName&&page!=='subject')return `${label} ${subjectName} | AI-CLO OLYMPIC`;
   if(subjectCode)return `${subjectName} | AI-CLO OLYMPIC`;
   return `${label} | AI-CLO OLYMPIC`;
 }
 
 function navItems(){
-  if(page.startsWith('teacher'))return [
-    ['teacher','⌂','Tổng quan','/olympic/teacher/'],
-    ['teacherContents','≡','Nội dung','/olympic/teacher/contents/'],
-    ['teacherLessons','∑','Bài học','/olympic/teacher/lessons/'],
-    ['teacherProblems','?','Bài toán','/olympic/teacher/problems/'],
-    ['teacherTests','✎','Đề luyện','/olympic/teacher/tests/'],
-    ['teacherStudents','♙','Sinh viên','/olympic/teacher/students/']
-  ];
+  if(page.startsWith('teacher')){
+    const code=preferredTeacherSubjectCode();
+    return [
+      ['teacher','⌂','Tổng quan',teacherUrl('',code)],
+      ['teacherContents','≡','Nội dung',teacherUrl('contents',code)],
+      ['teacherLessons','∑','Bài học',teacherUrl('lessons',code)],
+      ['teacherProblems','?','Bài toán',teacherUrl('problems',code)],
+      ['teacherTests','✎','Đề luyện',teacherUrl('tests',code)],
+      ['teacherStudents','♙','Sinh viên',teacherUrl('students',code)]
+    ];
+  }
   if(page==='admin')return [['admin','⚙','Cấu hình','/olympic/admin/']];
   if(subjectCode)return [
     ['subject','⌂','Tổng quan',subjectUrl()],
