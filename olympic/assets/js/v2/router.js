@@ -8,12 +8,18 @@ function internalOlympicUrl(raw){
   }catch{return null}
 }
 
+function closeRouteDialog(){
+  const d=$('#olyDialog');
+  if(d?.open)d.close();
+}
+
 async function navigateTo(raw,{replace=false,force=false}={}){
   const url=new URL(raw,location.href);
   const route=internalOlympicUrl(url.href);
   if(!route){location.href=url.href;return}
   if(state.dirty&&!force&&url.href!==location.href&&!confirm('Bài học đang có thay đổi chưa lưu. Rời trang và bỏ các thay đổi?'))return;
   state.dirty=false;
+  closeRouteDialog();
   if(url.href===location.href&&!replace)return;
   history[replace?'replaceState':'pushState']({olympic:true},'',url.href);
   closeMobileNav();
@@ -43,6 +49,6 @@ function installRouter(){
     const a=e.target.closest?.('a[href]');if(!a)return;
     const url=internalOlympicUrl(a.href);if(url)warmRoute(url);
   },{passive:true});
-  window.addEventListener('popstate',()=>{state.dirty=false;renderRoute({scroll:true})});
+  window.addEventListener('popstate',()=>{state.dirty=false;closeRouteDialog();renderRoute({scroll:true})});
   window.addEventListener('beforeunload',e=>{if(!state.dirty)return;e.preventDefault();e.returnValue=''});
 }
