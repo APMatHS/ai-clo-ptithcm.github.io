@@ -33,25 +33,33 @@ async function renderLessons(c){
 async function renderTests(c){
   if(!state.user){c.innerHTML=authGate();return wireGate()}
   if(!state.subject){c.innerHTML='<div class="oly-panel oly-empty"><b>Không tìm thấy môn Olympic.</b></div>';return}
-  const qs=new URLSearchParams(location.search),id=qs.get('id'),tab=qs.get('tab')||'roadmap';
+  const qs=new URLSearchParams(location.search),id=qs.get('id'),tab=qs.get('tab')||'roadmap',topicFilter=qs.get('topic')||'';
   if(id){
-    let q=db.from('olympic_tests').select('*,topic:olympic_topics(title),lesson:olympic_lessons(title)').eq('id',id).eq('subject_id',state.subject.id).eq('is_visible',true);
-    if(!staff())q=q.eq('status','published');
+    let canManage=false;
+    if(staff()){
+      const mr=await db.rpc('olympic_can_manage_subject',{p_subject_id:state.subject.id});
+      if(!mr.error)canManage=!!mr.data;
+    }
+    let q=db.from('olympic_tests').select('*,topic:olympic_topics(title),lesson:olympic_lessons(title)').eq('id',id).eq('subject_id',state.subject.id);
+    if(!canManage)q=q.eq('is_visible',true).eq('status','published');
     const r=await q.maybeSingle();
     if(r.error)throw r.error;
     if(!r.data){c.innerHTML='<div class="oly-panel oly-empty"><span class="symbol">∅</span><b>Không tìm thấy đề luyện.</b></div>';return}
     const x=r.data;
-    const backTab=x.test_type==='lesson'?'roadmap':'general';
-    c.innerHTML=`<div class="oly-toolbar"><a class="oly-btn" href="${subjectFeatureUrl('tests')}?tab=${backTab}">← Đề luyện</a>${x.lesson?.title?`<a class="oly-btn" href="${subjectFeatureUrl('lessons')}?id=${encodeURIComponent(x.lesson_id)}">↗ Bài học</a>`:''}</div><article class="oly-panel"><span class="oly-badge ${x.test_type==='lesson'?'required':'recommended'}">${x.test_type==='lesson'?'Lộ trình':'Tổng hợp'}</span><h2 style="font-family:Cambria Math,Georgia,serif;font-size:30px;margin-bottom:6px">${esc(x.title)}</h2><p style="color:#627d98">${esc(x.description||'')}</p><div class="meta">${x.topic?.title?`<span class="oly-badge">${esc(x.topic.title)}</span>`:''}${x.lesson?.title?`<span class="oly-badge">Sau bài: ${esc(x.lesson.title)}</span>`:''}</div><div class="oly-preview" style="border:0;padding:10px 0 0;min-height:0">${renderTex(x.content_tex)}</div></article>`;
+    const ir=await db.from('olympic_test_items').select('*').eq('test_id',x.id).eq('subject_id',state.subject.id).order('order_index');
+    if(ir.error)throw ir.error;
+    const items=ir.data||[],backTab=x.test_type==='lesson'?'roadmap':'general';
+    c.innerHTML=`<div class="oly-toolbar"><a class="oly-btn" href="${subjectFeatureUrl('tests')}?tab=${backTab}">← Đề luyện</a>${x.lesson?.title?`<a class="oly-btn" href="${subjectFeatureUrl('lessons')}?id=${encodeURIComponent(x.lesson_id)}">↗ Bài học</a>`:''}${canManage?`<div class="grow"></div><a class="oly-btn primary" href="${teacherUrl('tests',subjectCode)}&edit=${encodeURIComponent(x.id)}">Sửa đề</a>`:''}</div><article class="oly-panel"><span class="oly-badge ${x.test_type==='lesson'?'required':'recommended'}">${x.test_type==='lesson'?'Lộ trình':'Tổng hợp'}</span><h2 style="font-family:Cambria Math,Georgia,serif;font-size:30px;margin-bottom:6px">${esc(x.title)}</h2><p style="color:#627d98">${esc(x.description||'')}</p><div class="meta">${x.topic?.title?`<span class="oly-badge">${esc(x.topic.title)}</span>`:''}${x.lesson?.title?`<span class="oly-badge">Sau bài: ${esc(x.lesson.title)}</span>`:''}${items.length?`<span class="oly-badge">${items.length} câu</span>`:''}</div>${items.length?`<div style="display:grid;gap:14px;margin-top:18px">${items.map((it,i)=>`<section class="oly-card"><div class="meta"><span class="oly-badge required">Câu ${i+1}</span>${Number(it.points||0)>0?`<span class="oly-badge">${Number(it.points)} điểm</span>`:''}</div><div class="oly-preview" style="border:0;padding:8px 0 0;min-height:0">${renderTex(it.content_tex||'')}</div>${it.hint_tex?`<details><summary>Gợi ý</summary><div class="oly-preview" style="border:0;min-height:0">${renderTex(it.hint_tex)}</div></details>`:''}${canManage&&it.answer_tex?`<details><summary>Đáp án / lời giải · chỉ giảng viên</summary><div class="oly-preview" style="border:0;min-height:0">${renderTex(it.answer_tex)}</div></details>`:''}</section>`).join('')}</div>`:`<div class="oly-preview" style="border:0;padding:10px 0 0;min-height:0">${renderTex(x.content_tex||'')}</div>`}</article>`;
     return;
   }
-  let q=db.from('olympic_tests').select('id,title,description,test_type,status,order_index,topic:olympic_topics(title),lesson:olympic_lessons(title)').eq('subject_id',state.subject.id).eq('is_visible',true).order('order_index');
+  let q=db.from('olympic_tests').select('id,title,description,test_type,status,order_index,topic_id,topic:olympic_topics(title),lesson:olympic_lessons(title)').eq('subject_id',state.subject.id).eq('is_visible',true).order('order_index');
   if(!staff())q=q.eq('status','published');
   const r=await q;
   if(r.error)throw r.error;
   const all=r.data||[];
-  const list=tab==='general'?all.filter(x=>x.test_type!=='lesson'):all.filter(x=>x.test_type==='lesson');
-  c.innerHTML=`<div class="oly-section-head"><div><h2>π Đề luyện ${esc(state.subject.name)}</h2><p>Đề cuối bài được xếp theo lộ trình học; đề tổng hợp được tách riêng để luyện nhiều chuyên đề.</p></div></div><div class="oly-toolbar" style="margin-bottom:16px"><a class="oly-btn ${tab==='roadmap'?'primary':''}" href="?tab=roadmap">Lộ trình</a><a class="oly-btn ${tab==='general'?'primary':''}" href="?tab=general">Đề tổng hợp</a></div><div class="oly-grid">${list.length?list.map(x=>`<a class="oly-card clickable" href="?id=${x.id}"><span class="arrow">→</span><div class="math-icon ${x.test_type==='lesson'?'green':'gold'}">π</div><h3>${esc(x.title)}</h3><p>${esc(x.description||'')}</p><div class="meta">${x.topic?.title?`<span class="oly-badge">${esc(x.topic.title)}</span>`:''}${x.lesson?.title?`<span class="oly-badge">${esc(x.lesson.title)}</span>`:''}${staff()?`<span class="oly-badge ${esc(x.status)}">${statusLabel(x.status)}</span>`:''}</div></a>`).join(''):`<div class="oly-panel oly-empty"><span class="symbol">∅</span><b>${tab==='general'?'Chưa có đề tổng hợp':'Chưa có đề luyện theo lộ trình'}</b><span>${tab==='general'?'Có thể bổ sung đề theo chủ đề, đề mô phỏng hoặc đề thi thử sau.':'Đề cuối bài sẽ tự xuất hiện tại đây khi được liên kết với bài học.'}</span></div>`}</div>`;
+  let list=tab==='general'?all.filter(x=>x.test_type!=='lesson'):all.filter(x=>x.test_type==='lesson');
+  if(topicFilter)list=list.filter(x=>x.topic_id===topicFilter);
+  c.innerHTML=`<div class="oly-section-head"><div><h2>π Đề luyện ${esc(state.subject.name)}</h2><p>Đề cuối bài được xếp theo lộ trình học; đề tổng hợp được tách riêng để luyện nhiều chuyên đề.</p></div>${staff()?`<a class="oly-btn primary" href="${teacherUrl('tests',subjectCode)}${topicFilter?`&topic=${encodeURIComponent(topicFilter)}`:''}">Quản lý đề luyện</a>`:''}</div><div class="oly-toolbar" style="margin-bottom:16px"><a class="oly-btn ${tab==='roadmap'?'primary':''}" href="?tab=roadmap${topicFilter?`&topic=${encodeURIComponent(topicFilter)}`:''}">Lộ trình</a><a class="oly-btn ${tab==='general'?'primary':''}" href="?tab=general${topicFilter?`&topic=${encodeURIComponent(topicFilter)}`:''}">Đề tổng hợp</a>${topicFilter?`<a class="oly-btn small" href="${subjectFeatureUrl('tests')}">Bỏ lọc mục</a>`:''}</div><div class="oly-grid">${list.length?list.map(x=>`<a class="oly-card clickable" href="?id=${x.id}"><span class="arrow">→</span><div class="math-icon ${x.test_type==='lesson'?'green':'gold'}">π</div><h3>${esc(x.title)}</h3><p>${esc(x.description||'')}</p><div class="meta">${x.topic?.title?`<span class="oly-badge">${esc(x.topic.title)}</span>`:''}${x.lesson?.title?`<span class="oly-badge">${esc(x.lesson.title)}</span>`:''}${staff()?`<span class="oly-badge ${esc(x.status)}">${statusLabel(x.status)}</span>`:''}</div></a>`).join(''):`<div class="oly-panel oly-empty"><span class="symbol">∅</span><b>${tab==='general'?'Chưa có đề tổng hợp':'Chưa có đề luyện theo lộ trình'}</b><span>${tab==='general'?'Giảng viên có thể tạo đề tổng hợp từ câu thủ công và ngân hàng bài toán.':'Đề cuối bài sẽ xuất hiện tại đây khi được liên kết với bài học.'}</span></div>`}</div>`;
 }
 
 function renderComing(c,kind){
