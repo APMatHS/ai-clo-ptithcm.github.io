@@ -32,16 +32,35 @@ function closeMobileNav(){
   $('#olyOverlay')?.classList.remove('show');
 }
 
+function shellSubject(){
+  if(state.subject)return state.subject;
+  if(subjectCode)return state.subjects.find(x=>x.code===subjectCode)||subjFallback[subjectCode]||null;
+  if(page.startsWith('teacher')){
+    const code=new URLSearchParams(location.search).get('subject');
+    if(code)return state.subjects.find(x=>x.code===code)||subjFallback[code]||null;
+  }
+  return null;
+}
+
+function topArea(){
+  if(page==='admin')return 'admin';
+  if(page.startsWith('teacher'))return 'teacher';
+  return 'olympic';
+}
+
 function updateShell(){
   if(!shellReady)return;
   const title=labels[page]||labels.home;
-  const subjectName=(state.subject||subjFallback[subjectCode])?.name||'';
+  const contextSubject=shellSubject();
+  const subjectName=contextSubject?.name||'';
   document.title=routeTitle();
   $('#olySubjectSlot').innerHTML=subjectName?`<div class="oly-subject-pill">Môn hiện tại · <b>${esc(subjectName)}</b></div>`:'';
-  $('#olyNav').innerHTML=navItems().map(([id,sym,name,url])=>`<a class="${id===page?'active':''}" href="${url}"><span class="symbol">${sym}</span>${name}</a>`).join('');
+  $('#olyNav').innerHTML=navItems().map(([id,sym,name,url])=>`<a class="${id===page?'active':''}" href="${url}" ${id===page?'aria-current="page"':''}><span class="symbol">${sym}</span>${name}</a>`).join('');
   $('#olyCrumbSmall').textContent='AI-CLO OLYMPIC'+(subjectName?' · '+subjectName:'');
   $('#olyCrumbTitle').textContent=title[0];
-  $('#olyTopActions').innerHTML=`<a class="hide-mobile" href="/olympic/">Olympic</a>${staff()?'<a class="primary" href="/olympic/teacher/">Giảng viên</a>':''}${admin()?'<a href="/olympic/admin/">Admin</a>':''}`;
+  const area=topArea();
+  const topLink=(name,url,key,visible=true,extra='')=>visible?`<a class="${[area===key?'primary':'',extra].filter(Boolean).join(' ')}" href="${url}" ${area===key?'aria-current="page"':''}>${name}</a>`:'';
+  $('#olyTopActions').innerHTML=`${topLink('Olympic','/olympic/','olympic',true,'hide-mobile')}${topLink('Giảng viên','/olympic/teacher/','teacher',staff())}${topLink('Admin','/olympic/admin/','admin',admin())}`;
   const isAuth=!!state.user;
   $('#olyUser').innerHTML=isAuth?`<b>${esc(state.profile?.full_name||state.user.email)}</b>${esc(state.profile?.role||'')}`:'<b>Chưa đăng nhập</b>Dùng tài khoản AI-CLO PTITHCM';
   $('#olySideActions').innerHTML=`<a href="/app.html">AI-CLO</a>${isAuth?'<button id="olyLogout">Đăng xuất</button>':'<button id="olyLoginOpen">Đăng nhập</button>'}`;
