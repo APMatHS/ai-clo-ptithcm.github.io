@@ -12,13 +12,15 @@ Chuẩn đang áp dụng:
 - Mỗi bài học có mục tiêu, kỹ thuật Olympic, ví dụ có phân tích chiến lược, lưu ý phòng thi và sai lầm thường gặp.
 - Mỗi bài có **đề luyện 4 câu** theo tầng: Củng cố → Biến thể → Olympic → Thử thách.
 - Không tạo nội dung quá cơ bản hoặc lặp lại giáo trình đại trà.
-- Tăng liên kết giữa các ngôn ngữ: **ma trận ↔ ánh xạ tuyến tính ↔ kernel/image ↔ dimension ↔ cấu trúc phổ ↔ truy hồi**.
+- Tăng liên kết giữa các ngôn ngữ: **ma trận ↔ ánh xạ tuyến tính ↔ kernel/image ↔ dimension ↔ trực giao ↔ cấu trúc phổ ↔ truy hồi**.
 - Đề luyện trong `olympic_tests` hiện chỉ lưu nội dung đề, không nhúng lời giải. Trường `answer_tex` thuộc ngân hàng bài toán (`olympic_problems`) và phần lời giải sẽ tiếp tục được tách/siết quyền khi triển khai.
 
 ## Định hướng bám đề gần đây
 
 - Ưu tiên đề cương Olympic Toán sinh viên toàn quốc 2026 và các đề/đề đề nghị 2024–2026.
 - Nhóm trọng tâm Đại số tuyến tính: hệ phương trình, hạng, định thức, nghịch đảo, không gian–ánh xạ tuyến tính, trị riêng, đa thức đặc trưng/tối tiểu, chéo hóa; với bảng A chú ý thêm ma trận đặc biệt và Cayley–Hamilton.
+- Đề cương 2026 nêu trực tiếp ma trận đối xứng, phản đối xứng, Hermite và **ma trận trực giao** ở phần bảng A; vì vậy phần Euclide–trực giao được ưu tiên theo hướng cấu trúc ma trận, phổ và bất biến chuẩn.
+- Dạng toàn phương không được nêu thành mục riêng trong đề cương 2026, nên giữ như phần mở rộng hỗ trợ ma trận đối xứng, chéo hóa trực giao, xác định dương và cực trị; không để chiếm tỷ trọng lớn hơn các chủ đề cốt lõi.
 - Đề 2026 có dạng toán tử tuyến tính–trị riêng và bài giao hoán tử dùng trực tiếp `tr(AB)=tr(BA)`; các bài mới phải tăng kỹ năng nhận cấu trúc thay vì chỉ tính toán cơ học.
 - Đề đề nghị 2024 có trực tiếp các cấu trúc khối `[[A,B],[B,A]]` và `[[A,-B],[B,A]]`; vì vậy phần ma trận khối ưu tiên đồng dạng khối, tổng–hiệu và thực hóa ma trận phức.
 - Đề tuyển Olympic 2026 của ĐH Bách Khoa Hà Nội có dạng phương trình `A^3+B=BA` và yêu cầu suy ra giao hoán; vì vậy chủ đề phương trình ma trận bổ sung riêng kỹ thuật **đồng nhất thức đa thức → khả nghịch → ép giao hoán**.
@@ -28,9 +30,9 @@ Chuẩn đang áp dụng:
 
 Tổng số mục nội dung của môn Đại số: **27**.
 
-Đã nâng theo chuẩn Olympic: **12/27**.
+Đã nâng theo chuẩn Olympic: **14/27**.
 
-### Đại số tuyến tính — đã hoàn thành 12/14
+### Đại số tuyến tính — đã hoàn thành 14/14
 
 1. ✅ Hệ phương trình tuyến tính & mô hình hóa
 2. ✅ Định thức
@@ -44,8 +46,8 @@ Tổng số mục nội dung của môn Đại số: **27**.
 10. ✅ Lũy thừa ma trận & truy hồi tuyến tính
 11. ✅ Ma trận khối & ma trận nghịch đảo
 12. ✅ Phương trình ma trận & ma trận giao hoán
-13. ⬜ Không gian Euclide & trực giao
-14. ⬜ Dạng toàn phương
+13. ✅ Không gian Euclide & trực giao
+14. ✅ Dạng toàn phương
 
 ### Đa thức — còn 6/6
 
@@ -66,36 +68,48 @@ Tổng số mục nội dung của môn Đại số: **27**.
 6. ⬜ Bất biến & nguyên lý cực hạn
 7. ⬜ Đồ thị cơ bản
 
-## Năm chủ đề vừa nâng
+## Các chủ đề Đại số tuyến tính vừa nâng
 
 ### Chéo hóa ma trận
 
-Đã chuyển thành 6 bài theo hướng thi: bội đại số–bội hình học, tham số và đa thức tối tiểu, dựng cơ sở riêng và tính lũy thừa, phân biệt trên R/C và ma trận cấu trúc, chéo hóa đồng thời–giao hoán, chéo hóa trực giao.
+6 bài: bội đại số–bội hình học, tham số và đa thức tối tiểu, dựng cơ sở riêng và tính lũy thừa, phân biệt trên R/C và ma trận cấu trúc, chéo hóa đồng thời–giao hoán, chéo hóa trực giao.
 
 ### Vết & ma trận lũy linh
 
-Đã chuyển thành 6 bài: vết và đổi thứ tự tích, giao hoán tử vết 0, ma trận cấp 2 vết 0, lũy linh–hạng–kernel, idempotent/phép chiếu, bài tổng hợp vết–phổ–đồng nhất thức. Có bài luyện bám trực tiếp ý tưởng của đề quốc gia 2026.
+6 bài: vết và đổi thứ tự tích, giao hoán tử vết 0, ma trận cấp 2 vết 0, lũy linh–hạng–kernel, idempotent/phép chiếu, bài tổng hợp vết–phổ–đồng nhất thức. Có bài luyện bám trực tiếp ý tưởng của đề quốc gia 2026.
 
 ### Lũy thừa ma trận & truy hồi tuyến tính
 
-Đã chuyển trọng tâm khỏi Markov: chéo hóa, Cayley–Hamilton, dạng `λI+N`, truy hồi tuyến tính, lũy thừa toán tử `T^n(p)`; Markov chỉ còn một bài ứng dụng phụ.
+6 bài, chuyển trọng tâm khỏi Markov: chéo hóa, Cayley–Hamilton, dạng `λI+N`, truy hồi tuyến tính, lũy thừa toán tử `T^n(p)`; Markov chỉ còn một bài ứng dụng phụ.
 
 ### Ma trận khối & ma trận nghịch đảo
 
-Đã nâng từ 4 lên 6 bài, mỗi bài có đề luyện 4 câu. Trọng tâm: biến đổi khối và tam giác hóa; cấu trúc `[[A,B],[B,A]]` với cơ sở tổng–hiệu; thực hóa `A+iB` qua `[[A,-B],[B,A]]`; đồng nhất thức `I-AB` và `I-BA`, định thức Sylvester; phần bù Schur như phép khử khối; cập nhật hạng một `I+uv^T` và nghịch đảo nhanh. Hạn chế học thuộc công thức nặng, ưu tiên nhận cấu trúc.
+6 bài: biến đổi khối và tam giác hóa; cấu trúc `[[A,B],[B,A]]`; thực hóa `A+iB`; đồng nhất thức `I-AB` và `I-BA`; phần bù Schur như phép khử khối; cập nhật hạng một `I+uv^T` và nghịch đảo nhanh.
 
 ### Phương trình ma trận & ma trận giao hoán
 
-Đã nâng từ 4 lên 6 bài, mỗi bài có đề luyện 4 câu. Trọng tâm mới: `AX=B` qua ảnh–kernel; phương trình liên kết `AX=XB` và giao của hai phổ; không gian giao hoán `C(A)` và định lý phổ đơn suy ra `X=p(A)`; phản giao hoán `AX+XA=0`; kỹ thuật đồng nhất thức đa thức ép khả nghịch rồi suy ra giao hoán; bài tổng hợp bằng không gian bất biến và hệ thức `p(A)X=Xp(B)`. Tránh trải thành `n^2` ẩn khi có thể dùng cấu trúc phổ.
+6 bài: `AX=B` qua ảnh–kernel; `AX=XB` và giao của hai phổ; không gian giao hoán `C(A)` và trường hợp phổ đơn; phản giao hoán `AX+XA=0`; kỹ thuật đồng nhất thức ép khả nghịch rồi suy ra giao hoán; bài tổng hợp bằng không gian bất biến và `p(A)X=Xp(B)`.
+
+### Không gian Euclide & trực giao
+
+Đã nâng từ 4 lên 6 bài, mỗi bài có đề luyện 4 câu. Trọng tâm mới: Cauchy–Schwarz qua ma trận Gram; hai đẳng thức `(Im A)^⊥=ker A^T` và `(ker A)^⊥=Im A^T`; Gram–Schmidt/QR như công cụ; phép chiếu và phản xạ Householder; ma trận trực giao với cấu trúc phổ–định thức; định lý phổ cho ma trận đối xứng. Đây là phần được ưu tiên vì ma trận trực giao nằm trực tiếp trong đề cương bảng A 2026.
+
+### Dạng toàn phương
+
+Đã nâng từ 4 lên 6 bài, mỗi bài có đề luyện 4 câu nhưng giữ tỷ trọng như phần mở rộng. Nội dung: biểu diễn `x^TAx` và công thức phân cực; đồng dư và chỉ số quán tính; tiêu chuẩn Sylvester cho bài tham số; xác định dương qua trị riêng và phân tích Gram; thương Rayleigh và cực trị; bài tổng hợp ma trận hạng một `αI+βuu^T`. Không phát triển thành chuyên đề lý thuyết nặng vì không phải mục riêng của đề cương 2026.
 
 ## Thứ tự tiếp tục
 
-Làm hết phần Đại số tuyến tính trước:
+Phần **Đại số tuyến tính đã hoàn thành 14/14**. Tiếp theo chuyển sang **Đa thức** theo thứ tự:
 
-1. Không gian Euclide & trực giao
-2. Dạng toàn phương
+1. Nghiệm & đạo hàm đa thức
+2. Viète & tổng Newton
+3. Nội suy Lagrange
+4. Đa thức bất khả quy
+5. Phương trình hàm đa thức
+6. Chebyshev & cực trị đa thức
 
-Sau đó mới chuyển sang **Đa thức**, cuối cùng là **Tổ hợp – Rời rạc**.
+Sau đó mới chuyển sang **Tổ hợp – Rời rạc**.
 
 ## Nguyên tắc làm việc
 
@@ -108,6 +122,6 @@ Sau đó mới chuyển sang **Đa thức**, cuối cùng là **Tổ hợp – R
 
 ## Trạng thái tiếp theo
 
-**Chủ đề kế tiếp: Không gian Euclide & trực giao.**
+**Chủ đề kế tiếp: Nghiệm & đạo hàm đa thức.**
 
-Mục tiêu: không dừng ở Gram–Schmidt cơ học; ưu tiên trực giao–trực chuẩn, Bessel/Cauchy–Schwarz, chiếu trực giao và khoảng cách đến không gian con, ma trận trực giao và bất biến chuẩn, phản xạ/Householder, cùng các bài cực trị hình học tuyến tính có khả năng xuất hiện trong Olympic.
+Mục tiêu: bám các bài Olympic về nghiệm thực/phức, nghiệm bội, Rolle–Gauss–Lucas ở mức phù hợp, quan hệ giữa nghiệm của `P` và `P'`, đếm và đánh giá số nghiệm, cùng các bài tham số/cực trị có cấu trúc; tránh biến thành ôn đạo hàm phổ thông.
