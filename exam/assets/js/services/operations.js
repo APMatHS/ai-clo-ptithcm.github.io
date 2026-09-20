@@ -9,5 +9,6 @@ export const operations={
   transferDevice:(attemptId)=>call('transfer-device',{attemptId}),
   lockAttempt:(attemptId,reason='')=>call('lock-attempt',{attemptId,reason}),
   unlockAttempt:(attemptId)=>call('unlock-attempt',{attemptId}),
-  reopenAttempt:(attemptId,extraMinutes=5)=>call('reopen-attempt',{attemptId,extraMinutes})
+  reopenAttempt:(attemptId,extraMinutes=5)=>call('reopen-attempt',{attemptId,extraMinutes}),
+  applyPaperHotfix:(examId,questionId,newQuestionVersionId,newPaperVersionId)=>invokeFunction('paper-hotfix',{examId,questionId,newQuestionVersionId,newPaperVersionId})
 };
