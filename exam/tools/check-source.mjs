@@ -33,9 +33,11 @@ for(const file of frontendJs){
   if(Buffer.byteLength(text)>45_000)warnings.push(`${rel(file)} lớn hơn 45 KB; cân nhắc tách module.`);
   const importRe=/\b(?:import|export)\s+(?:[^'";]+?\s+from\s+)?['"](\.{1,2}\/[^'"]+)['"]/g;
   for(const m of text.matchAll(importRe)){
-    const target=path.resolve(path.dirname(file),m[1]);
+    const spec=m[1];
+    const cleanSpec=spec.split(/[?#]/)[0];
+    const target=path.resolve(path.dirname(file),cleanSpec);
     const candidates=[target,target+'.js',path.join(target,'index.js')];
-    if(!candidates.some(fs.existsSync))errors.push(`${rel(file)}: import không tồn tại: ${m[1]}`);
+    if(!candidates.some(fs.existsSync))errors.push(`${rel(file)}: import không tồn tại: ${spec}`);
   }
 }
 
