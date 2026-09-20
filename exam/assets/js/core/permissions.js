@@ -1,4 +1,4 @@
-export const OWNER_PERMISSIONS=new Set(['manage_exam','manage_members','manage_sessions','manage_roster','manage_paper','manage_live','view_results','export_results','view_correct_answers','manage_assets']);
+export const OWNER_PERMISSIONS=new Set(['view_exam','manage_exam','manage_members','manage_sessions','manage_roster','manage_paper','manage_live','view_results','export_results','view_correct_answers','manage_assets']);
 
 export function isSystemAdmin(profile){return !!profile?.active&&profile.system_role==='admin';}
 export function hasPermission(profile,membership,permission){
