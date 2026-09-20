@@ -8,6 +8,7 @@ import { renderExamDetail } from './features/exams/detail.js';
 import { renderLive } from './features/live.js';
 import { renderResults } from './features/results.js';
 import { renderStudent } from './features/student.js';
+import { renderAccounts } from './features/accounts.js';
 import { toast,escapeHtml,errorMessage } from './core/ui.js';
 
 const root=document.getElementById('app');
@@ -26,21 +27,17 @@ async function renderRoute(route){
     if(route.name==='student'){await renderStudent(root);return;}
     let {profile}=getState();
     if(route.name==='staff'&&!profile){renderAuth(root,'staff');return;}
-    if(!profile){
-      if(route.name==='home')renderAuth(root,'student');else renderAuth(root,'staff');
-      return;
-    }
+    if(!profile){if(route.name==='home')renderAuth(root,'student');else renderAuth(root,'staff');return;}
     if(!profile.active){renderAuth(root,'staff');return;}
     if(route.name==='staff'){navigate('/');return;}
     if(route.name==='home')await renderDashboard(root,profile);
     else if(route.name==='exams')await renderExamList(root,profile);
+    else if(route.name==='accounts')await renderAccounts(root,profile);
     else if(route.name==='exam')await renderExamDetail(root,profile,route.params.examId);
     else if(route.name==='live')await renderLive(root,profile,route.params.examId);
     else if(route.name==='results')await renderResults(root,profile,route.params.examId);
     else renderNotFound();
   }catch(error){if(seq!==routeSeq)return;console.error(error);const message=errorMessage(error);root.innerHTML=`<div class="boot-screen"><div class="brand-mark"><strong>AI-CLO</strong><span>EXAM</span></div><h2>Không thể mở trang</h2><p>${escapeHtml(message)}</p><div class="row"><a class="btn btn-secondary" href="#/">Tổng quan</a><button class="btn btn-secondary" data-retry>Thử lại</button></div></div>`;root.querySelector('[data-retry]')?.addEventListener('click',()=>renderRoute(route));toast(message,'error',5000);}
 }
-
 function renderNotFound(){root.innerHTML=`<div class="boot-screen"><div class="brand-mark"><strong>AI-CLO</strong><span>EXAM</span></div><h2>Không tìm thấy trang</h2><a class="btn btn-secondary" href="#/">Về Tổng quan</a></div>`;}
-
 bootstrap();
