@@ -1,4 +1,4 @@
-/* AI-CLO PTITHCM V12.6.53 — on-demand loader for independent utilities only.
+/* AI-CLO PTITHCM V12.6.54 — on-demand loader for independent utilities only.
    Assessment runtime is owned entirely by js/assessment.js. */
 (()=>{
 'use strict';
@@ -8,14 +8,36 @@ const AI_CLONE='js/questions/ai-clone.js?v=12.6.47';
 function loadScript(src){if(loaded.has(src))return Promise.resolve();if(pending.has(src))return pending.get(src);const p=new Promise((resolve,reject)=>{const s=document.createElement('script');s.src=src;s.async=false;s.dataset.aicloFeature=src;s.onload=()=>{loaded.add(src);pending.delete(src);resolve()};s.onerror=()=>{pending.delete(src);s.remove();reject(new Error(`Không tải được mô-đun ${src}.`))};document.head.appendChild(s)});pending.set(src,p);return p}
 async function loadMany(files){for(const f of files)await loadScript(f)}
 const lazyImport=async(...args)=>{await loadScript('js/questions/import.js?v=12.6.53');const fn=window.v102BulkImportQuestions;if(typeof fn!=='function'||fn===lazyImport)throw new Error('Không khởi tạo được chức năng nhập câu hỏi.');return fn(...args)};window.v102BulkImportQuestions=lazyImport;
-window.v102CloForm=function(clo={}){modal(clo.id?'Sửa CLO':'Tạo CLO',`<form id="v122CloForm" class="form-grid"><label class="field">Mã CLO<input name="code" required value="${esc(clo.code||'')}"></label><label class="field wide">Mô tả đầy đủ<textarea name="description" required>${esc(clo.description||'')}</textarea></label><label class="field wide">Mô tả ngắn BM08<textarea name="short_description" required>${esc(clo.short_description||'')}</textarea></label><div class="form-actions"><button type="button" id="v122CloCancel" class="secondary">Hủy</button><button class="primary">Lưu CLO</button></div></form>`);$('#v122CloCancel').onclick=closeModal;$('#v122CloForm').onsubmit=async e=>{e.preventDefault();const v=Object.fromEntries(new FormData(e.target)),r=clo.id?await db.from('clos').update(v).eq('id',clo.id):await db.from('clos').insert(contentValues(v));if(r.error)return err(r.error);closeModal();toast('Đã lưu CLO');render()}}
+
+const isStructureAdmin=()=>typeof role==='function'&&role()==='admin';
+const requireStructureAdmin=message=>{if(isStructureAdmin())return true;toast(message||'Chỉ Admin được thay đổi cấu trúc học phần.',true);return false};
+function enforceStructureAdminUi(root=document){
+ if(isStructureAdmin())return;
+ root?.querySelectorAll?.('[data-topic],[data-edit-topic],[data-delete-topic],#addClo,[data-edit-clo],[data-delete-clo]').forEach(el=>el.remove());
+}
+const baseTopicForm=window.topicForm;
+if(typeof baseTopicForm==='function')window.topicForm=function(...args){if(!requireStructureAdmin('Chỉ Admin được thêm hoặc chỉnh sửa chủ đề.'))return;return baseTopicForm.apply(this,args)};
+const baseStructure=window.structure;
+if(typeof baseStructure==='function'){
+ const guardedStructure=async function(c,...args){const result=await baseStructure.call(this,c,...args);enforceStructureAdminUi(c||document);return result};
+ guardedStructure.__aicloStructureAdminGuard=true;
+ window.structure=guardedStructure;
+}
+
+window.v102CloForm=function(clo){
+ if(!requireStructureAdmin('Chỉ Admin được thêm hoặc chỉnh sửa CLO.'))return;
+ clo=clo||{};
+ modal(clo.id?'Sửa CLO':'Tạo CLO',`<form id="v122CloForm" class="form-grid"><label class="field">Mã CLO<input name="code" required value="${esc(clo.code||'')}"></label><label class="field wide">Chuẩn đầu ra CLO<textarea name="short_description" required>${esc(clo.short_description||'')}</textarea></label><label class="field wide">Prompt AI<textarea name="description" required>${esc(clo.description||'')}</textarea></label><div class="form-actions"><button type="button" id="v122CloCancel" class="secondary">Hủy</button><button class="primary">Lưu CLO</button></div></form>`);
+ $('#v122CloCancel').onclick=closeModal;
+ $('#v122CloForm').onsubmit=async e=>{e.preventDefault();if(!requireStructureAdmin('Chỉ Admin được lưu CLO.'))return;const v=Object.fromEntries(new FormData(e.target)),r=clo.id?await db.from('clos').update(v).eq('id',clo.id):await db.from('clos').insert(contentValues(v));if(r.error)return err(r.error);closeModal();toast('Đã lưu CLO');render()}
+}
 async function loadAiReviewFlow(){await loadMany(['js/ai/question-review.js?v=11.6.8','js/ai/review-flow.js?v=11.6.10'])}
 const lazyAiHistory=async(...args)=>{await loadAiReviewFlow();const fn=window.aiHistory;if(typeof fn!=='function'||fn===lazyAiHistory)throw new Error('Không khởi tạo được lịch sử AI.');return fn(...args)};window.aiHistory=lazyAiHistory;
 const lazyAiGenerate=async(...args)=>{await loadAiReviewFlow();await loadScript('js/ai/generator.js?v=11.6.9');const fn=window.aiGenerateForm;if(typeof fn!=='function'||fn===lazyAiGenerate)throw new Error('Không khởi tạo được chức năng tạo câu hỏi AI.');return fn(...args)};window.aiGenerateForm=lazyAiGenerate;
 const lazyDuplicateScan=async(...args)=>{await loadScript('js/questions/duplicate-scan.js?v=11.6.13');const fn=window.AICLO_DUPLICATE_SCAN?.open;if(typeof fn!=='function')throw new Error('Không khởi tạo được chức năng kiểm tra câu hỏi trùng.');return fn(...args)};window.openQuestionDuplicateScan=lazyDuplicateScan;
 async function ensureView(view){if(view==='exams'&&canTeach())await loadScript(APP_WINDOW_GEOMETRY)}
 function installNavigationGate(){const base=window.navigate;if(typeof base!=='function'||base.__aicloFeatureGate)return;const gated=async function(view,...args){try{await ensureView(view)}catch(e){console.error('AI-CLO utility load failed',e);window.toast?.('Không tải được tiện ích giao diện. Vui lòng thử lại.',true);throw e}return base.call(this,view,...args)};gated.__aicloFeatureGate=true;gated.__aicloBaseNavigate=base;window.navigate=gated}
-async function bootstrapIndependentFeatures(){installNavigationGate();try{await loadScript(AI_CLONE)}catch(e){console.error('AI-CLO AI clone module load failed',e)}}
+async function bootstrapIndependentFeatures(){installNavigationGate();enforceStructureAdminUi(document);try{await loadScript(AI_CLONE)}catch(e){console.error('AI-CLO AI clone module load failed',e)}}
 document.addEventListener('DOMContentLoaded',bootstrapIndependentFeatures);
 window.AICLO_FEATURES=Object.freeze({load:loadScript,loadMany,ensureView,loadAiReviewFlow,isLoaded:src=>loaded.has(src),pending:()=>[...pending.keys()]});
 })();
