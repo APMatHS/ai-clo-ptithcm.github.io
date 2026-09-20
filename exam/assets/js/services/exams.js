@@ -18,6 +18,14 @@ export async function createExam(payload,userId){
   fail(error);return data;
 }
 
+export async function updateExam(examId,patch){
+  const allowed=['name','subject_group','subject_name','academic_year','semester','status','score_visibility','retention_days','retention_until'];
+  const row=Object.fromEntries(Object.entries(patch||{}).filter(([key])=>allowed.includes(key)));
+  if(!Object.keys(row).length)throw new Error('Không có nội dung cần cập nhật.');
+  const {data,error}=await supabase.from('exams').update(row).eq('id',examId).select().single();
+  fail(error);return data;
+}
+
 export async function getExam(examId){
   const [{data:exam,error:examError},{data:member,error:memberError}]=await Promise.all([
     supabase.from('exams').select('*').eq('id',examId).single(),
