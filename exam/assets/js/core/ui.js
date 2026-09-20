@@ -44,10 +44,10 @@ export function openModal({title,body,footer='',wide=false,onMount}={}){
 
 export function confirmDialog({title='Xác nhận',message,confirmText='Xác nhận',danger=false}={}){
   return new Promise(resolve=>{
-    openModal({title,body:`<p>${escapeHtml(message||'')}</p>`,footer:`<button class="btn btn-secondary" data-cancel>Hủy</button><button class="btn ${danger?'btn-danger':'btn-primary'}" data-confirm>${escapeHtml(confirmText)}</button>`,onMount(modal=>{
+    openModal({title,body:`<p>${escapeHtml(message||'')}</p>`,footer:`<button class="btn btn-secondary" data-cancel>Hủy</button><button class="btn ${danger?'btn-danger':'btn-primary'}" data-confirm>${escapeHtml(confirmText)}</button>`,onMount:modal=>{
       modal.querySelector('[data-cancel]').onclick=()=>{closeModal();resolve(false)};
       modal.querySelector('[data-confirm]').onclick=()=>{closeModal();resolve(true)};
-    })});
+    }});
   });
 }
 
