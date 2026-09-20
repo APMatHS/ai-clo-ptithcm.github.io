@@ -17,18 +17,19 @@ Chuẩn đang áp dụng:
 
 ## Định hướng bám đề gần đây
 
-- Ưu tiên đề cương Olympic Toán sinh viên toàn quốc 2026 và các đề 2024–2026.
+- Ưu tiên đề cương Olympic Toán sinh viên toàn quốc 2026 và các đề/đề đề nghị 2024–2026.
 - Nhóm trọng tâm Đại số tuyến tính: hệ phương trình, hạng, định thức, nghịch đảo, không gian–ánh xạ tuyến tính, trị riêng, đa thức đặc trưng/tối tiểu, chéo hóa; với bảng A chú ý thêm ma trận đặc biệt và Cayley–Hamilton.
 - Đề 2026 có dạng toán tử tuyến tính–trị riêng và bài giao hoán tử dùng trực tiếp `tr(AB)=tr(BA)`; các bài mới phải tăng kỹ năng nhận cấu trúc thay vì chỉ tính toán cơ học.
+- Đề đề nghị 2024 có trực tiếp các cấu trúc khối `[[A,B],[B,A]]` và `[[A,-B],[B,A]]`; vì vậy phần ma trận khối ưu tiên đồng dạng khối, tổng–hiệu và thực hóa ma trận phức.
 - Nội dung Markov không phải trọng tâm đề cương 2026; chỉ giữ như ứng dụng phụ của lũy thừa ma trận. Trọng tâm chủ đề này chuyển sang Cayley–Hamilton, đa thức tối tiểu, phần lũy linh, truy hồi và lũy thừa toán tử.
 
 ## Tiến độ hiện tại
 
 Tổng số mục nội dung của môn Đại số: **27**.
 
-Đã nâng theo chuẩn Olympic: **10/27**.
+Đã nâng theo chuẩn Olympic: **11/27**.
 
-### Đại số tuyến tính — đã hoàn thành 10/14
+### Đại số tuyến tính — đã hoàn thành 11/14
 
 1. ✅ Hệ phương trình tuyến tính & mô hình hóa
 2. ✅ Định thức
@@ -40,7 +41,7 @@ Tổng số mục nội dung của môn Đại số: **27**.
 8. ✅ Chéo hóa ma trận
 9. ✅ Vết & ma trận lũy linh
 10. ✅ Lũy thừa ma trận & truy hồi tuyến tính
-11. ⬜ Ma trận khối & ma trận nghịch đảo
+11. ✅ Ma trận khối & ma trận nghịch đảo
 12. ⬜ Phương trình ma trận & ma trận giao hoán
 13. ⬜ Không gian Euclide & trực giao
 14. ⬜ Dạng toàn phương
@@ -64,7 +65,7 @@ Tổng số mục nội dung của môn Đại số: **27**.
 6. ⬜ Bất biến & nguyên lý cực hạn
 7. ⬜ Đồ thị cơ bản
 
-## Ba chủ đề vừa nâng
+## Bốn chủ đề vừa nâng
 
 ### Chéo hóa ma trận
 
@@ -78,14 +79,17 @@ Tổng số mục nội dung của môn Đại số: **27**.
 
 Đã chuyển trọng tâm khỏi Markov: chéo hóa, Cayley–Hamilton, dạng `λI+N`, truy hồi tuyến tính, lũy thừa toán tử `T^n(p)`; Markov chỉ còn một bài ứng dụng phụ.
 
+### Ma trận khối & ma trận nghịch đảo
+
+Đã nâng từ 4 lên 6 bài, mỗi bài có đề luyện 4 câu. Trọng tâm: biến đổi khối và tam giác hóa; cấu trúc `[[A,B],[B,A]]` với cơ sở tổng–hiệu; thực hóa `A+iB` qua `[[A,-B],[B,A]]`; đồng nhất thức `I-AB` và `I-BA`, định thức Sylvester; phần bù Schur như phép khử khối; cập nhật hạng một `I+uv^T` và nghịch đảo nhanh. Hạn chế học thuộc công thức nặng, ưu tiên nhận cấu trúc.
+
 ## Thứ tự tiếp tục
 
 Làm hết phần Đại số tuyến tính trước:
 
-1. Ma trận khối & ma trận nghịch đảo
-2. Phương trình ma trận & ma trận giao hoán
-3. Không gian Euclide & trực giao
-4. Dạng toàn phương
+1. Phương trình ma trận & ma trận giao hoán
+2. Không gian Euclide & trực giao
+3. Dạng toàn phương
 
 Sau đó mới chuyển sang **Đa thức**, cuối cùng là **Tổ hợp – Rời rạc**.
 
@@ -100,6 +104,6 @@ Sau đó mới chuyển sang **Đa thức**, cuối cùng là **Tổ hợp – R
 
 ## Trạng thái tiếp theo
 
-**Chủ đề kế tiếp: Ma trận khối & ma trận nghịch đảo.**
+**Chủ đề kế tiếp: Phương trình ma trận & ma trận giao hoán.**
 
-Mục tiêu: bám phần ma trận nghịch đảo trong đề cương 2026, nhưng nâng lên mức Olympic bằng cấu trúc khối, biến đổi sơ cấp có chiến lược, đồng dạng khối, định thức/khả nghịch và các công thức nghịch đảo thực sự hữu ích; tránh sa vào công thức Schur quá nặng nếu không phục vụ dạng đề.
+Mục tiêu: ưu tiên các phương trình `AX=XB`, `AX=XA`, `AX+XA=0`, nghiệm của phương trình đa thức theo ma trận, không gian giao hoán của ma trận có phổ đơn, và các bài dùng chéo hóa/khối bất biến để hạ phương trình ma trận thành các điều kiện vô hướng. Tránh biến chủ đề thành giải hệ tuyến tính cơ học trên `n^2` ẩn nếu còn cấu trúc tốt hơn.
