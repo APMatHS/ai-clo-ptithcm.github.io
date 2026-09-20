@@ -1,4 +1,5 @@
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
@@ -9,10 +10,19 @@ const errors=[];const warnings=[];
 
 function walk(dir,exts){if(!fs.existsSync(dir))return[];return fs.readdirSync(dir,{withFileTypes:true}).flatMap(e=>{const p=path.join(dir,e.name);return e.isDirectory()?walk(p,exts):exts.some(x=>e.name.endsWith(x))?[p]:[];});}
 function rel(p){return path.relative(root,p).replaceAll('\\','/');}
+function checkJsSource(source,label){
+  const temp=path.join(os.tmpdir(),`exam-inline-${process.pid}-${Math.random().toString(16).slice(2)}.js`);
+  try{
+    fs.writeFileSync(temp,source,'utf8');
+    const check=spawnSync(process.execPath,['--check',temp],{encoding:'utf8'});
+    if(check.status!==0)errors.push(`${label}: JavaScript syntax error\n${check.stderr.trim()}`);
+  }finally{try{fs.unlinkSync(temp);}catch{}}
+}
 
 const frontendJs=walk(path.join(root,'assets','js'),['.js']);
 const css=walk(path.join(root,'assets','css'),['.css']);
-const allText=[...frontendJs,...css,path.join(root,'index.html')].filter(fs.existsSync);
+const htmlPath=path.join(root,'index.html');
+const allText=[...frontendJs,...css,htmlPath].filter(fs.existsSync);
 
 for(const file of frontendJs){
   const check=spawnSync(process.execPath,['--check',file],{encoding:'utf8'});
@@ -41,13 +51,19 @@ for(const file of allText){
   if(count>8)warnings.push(`${rel(file)} có ${count} inline style; nên chuyển dần về CSS module.`);
 }
 
-const html=fs.readFileSync(path.join(root,'index.html'),'utf8');
+const html=fs.readFileSync(htmlPath,'utf8');
 for(const m of html.matchAll(/(?:href|src)=["'](\.\/[^"'#?]+)["']/g)){
   const target=path.resolve(root,m[1]);
   if(!fs.existsSync(target))errors.push(`index.html tham chiếu file không tồn tại: ${m[1]}`);
 }
 
-console.log(`AI-CLO EXAM source check: ${frontendJs.length} JS, ${css.length} CSS`);
+let inlineIndex=0;
+for(const m of html.matchAll(/<script(?![^>]*\bsrc=)(?![^>]*\btype=["']module["'])[^>]*>([\s\S]*?)<\/script>/gi)){
+  inlineIndex+=1;
+  checkJsSource(m[1],`index.html inline script #${inlineIndex}`);
+}
+
+console.log(`AI-CLO EXAM source check: ${frontendJs.length} JS, ${css.length} CSS, ${inlineIndex} inline script`);
 for(const w of warnings)console.warn(`WARN: ${w}`);
 if(errors.length){for(const e of errors)console.error(`ERROR: ${e}`);process.exit(1);}
 console.log('OK: không phát hiện lỗi cấu trúc chặn deploy.');
