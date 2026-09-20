@@ -13,7 +13,7 @@ Chuẩn đang áp dụng:
 - Mỗi bài có **đề luyện 4 câu** theo tầng: Củng cố → Biến thể → Olympic → Thử thách.
 - Không tạo nội dung quá cơ bản hoặc lặp lại giáo trình đại trà.
 - Tăng liên kết giữa các ngôn ngữ: **ma trận ↔ ánh xạ tuyến tính ↔ kernel/image ↔ dimension ↔ cấu trúc phổ ↔ truy hồi**.
-- `answer_tex` của đề luyện hiện để trống để tránh lộ lời giải qua API; phần lời giải sẽ tách/siết quyền sau.
+- Đề luyện trong `olympic_tests` hiện chỉ lưu nội dung đề, không nhúng lời giải. Trường `answer_tex` thuộc ngân hàng bài toán (`olympic_problems`) và phần lời giải sẽ tiếp tục được tách/siết quyền khi triển khai.
 
 ## Định hướng bám đề gần đây
 
