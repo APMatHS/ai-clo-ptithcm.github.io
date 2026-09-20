@@ -37,11 +37,12 @@ export async function addQuestion(paper,version,payload,userId){
   const {data:link,error:lErr}=await supabase.from('paper_version_questions').insert({paper_version_id:version.id,question_id:q.id,question_version_id:qv.id,group_version_id:payload.group_version_id||null,order_no:Number(last?.order_no||0)+1}).select().single();fail(lErr);return {question:q,questionVersion:qv,link};
 }
 
-export async function updateDraftQuestion(link,payload,userId){
+export async function updateQuestionLink(link,payload,userId){
   const {data:current,error:cErr}=await supabase.from('question_versions').select('*').eq('id',link.question_version_id).single();fail(cErr);
   const {data:qv,error:vErr}=await supabase.from('question_versions').insert({question_id:current.question_id,version_no:Number(current.version_no)+1,body_html:payload.body_html,choices:payload.choices,correct_key:payload.correct_key,points:Number(payload.points||1),metadata:payload.metadata||{},created_by:userId}).select().single();fail(vErr);
   const {error:lErr}=await supabase.from('paper_version_questions').update({question_version_id:qv.id,group_version_id:payload.group_version_id||null}).eq('id',link.id);fail(lErr);return qv;
 }
+export const updateDraftQuestion=updateQuestionLink;
 
 export async function lockPaperVersion(versionId){const {data,error}=await supabase.from('exam_paper_versions').update({status:'locked'}).eq('id',versionId).select().single();fail(error);return data;}
 
@@ -49,6 +50,13 @@ export async function cloneVersionForHotfix(paperId,currentVersion,userId,note='
   const next=Number(currentVersion.version_no)+1;const {data:newVersion,error}=await supabase.from('exam_paper_versions').insert({paper_id:paperId,version_no:next,status:'hotfix',change_note:note,created_by:userId}).select().single();fail(error);
   const {data:links,error:lErr}=await supabase.from('paper_version_questions').select('*').eq('paper_version_id',currentVersion.id).order('order_no');fail(lErr);
   if(links?.length){const rows=links.map(x=>({paper_version_id:newVersion.id,question_id:x.question_id,question_version_id:x.question_version_id,group_version_id:x.group_version_id,order_no:x.order_no}));const {error:iErr}=await supabase.from('paper_version_questions').insert(rows);fail(iErr);}return newVersion;
+}
+
+export async function editQuestionAsHotfix(paper,currentVersion,questionId,payload,userId,note='Sửa câu hỏi sau khi khóa'){
+  const newVersion=await cloneVersionForHotfix(paper.id,currentVersion,userId,note);
+  const {data:link,error}=await supabase.from('paper_version_questions').select('*').eq('paper_version_id',newVersion.id).eq('question_id',questionId).single();fail(error);
+  const questionVersion=await updateQuestionLink(link,payload,userId);
+  return {newVersion,questionVersion};
 }
 
 export async function setPaperShuffle(paperId,{shuffleQuestions,shuffleChoices}){const {data,error}=await supabase.from('exam_papers').update({shuffle_questions:!!shuffleQuestions,shuffle_choices:!!shuffleChoices}).eq('id',paperId).select().single();fail(error);return data;}
