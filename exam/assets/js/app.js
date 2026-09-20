@@ -1,7 +1,7 @@
 import { getStaffContext,signOutStaff,supabase } from './core/supabase.js';
 import { startRouter,navigate } from './router.js';
 import { getState,setState,resetStaffState } from './state.js';
-import { toast,escapeHtml,errorMessage } from './core/ui.js';
+import { toast,escapeHtml,errorMessage } from './core/ui.js?v=1.0.1';
 
 const root=document.getElementById('app');
 let routeSeq=0;
