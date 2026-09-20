@@ -1,0 +1,13 @@
+:root{
+  --font-sans:Inter,ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+  --bg:#f5f7fb;--surface:#fff;--surface-2:#f8fafc;--surface-3:#eef3f8;
+  --text:#102a43;--muted:#627d98;--line:#d9e2ec;
+  --primary:#1463ff;--primary-strong:#0b49c1;--primary-soft:#eaf1ff;
+  --success:#0f9d6c;--warning:#c97a00;--danger:#d64545;--info:#2f80ed;
+  --nav:#102a43;--nav-2:#173f5f;
+  --radius-xs:6px;--radius-sm:9px;--radius-md:14px;--radius-lg:20px;
+  --shadow-sm:0 1px 3px rgba(16,42,67,.08);--shadow-md:0 12px 32px rgba(16,42,67,.12);
+  --space-1:4px;--space-2:8px;--space-3:12px;--space-4:16px;--space-5:20px;--space-6:24px;--space-8:32px;
+  --sidebar-w:238px;--topbar-h:62px;--content-max:1540px;--control-h:40px;
+  --z-nav:50;--z-modal:1000;--z-toast:1100;
+}
