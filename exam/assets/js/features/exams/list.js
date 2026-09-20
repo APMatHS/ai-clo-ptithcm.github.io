@@ -1,0 +1,20 @@
+import { listExams,createExam } from '../../services/exams.js';
+import { staffShell } from '../../core/shell.js';
+import { canCreateExam } from '../../core/permissions.js';
+import { openModal,closeModal,toast,setBusy,errorMessage,escapeHtml,badge,formatDateTime } from '../../core/ui.js';
+
+const statusType=s=>s==='live'?'success':s==='ready'?'info':s==='closed'?'warning':'';
+const typeLabel=t=>({midterm:'Giữa kỳ',final:'Cuối kỳ',other:'Khác'})[t]||t;
+const subjectLabel=t=>({math:'Toán',physics:'Vật lý',philosophy:'Triết',english:'Anh văn',other:'Khác'})[t]||t;
+
+export async function renderExamList(root,profile){
+  const exams=await listExams();
+  const rows=exams.map(x=>`<tr><td><a href="#/exam/${x.id}" style="font-weight:800;text-decoration:none">${escapeHtml(x.name)}</a><div class="muted">${escapeHtml(x.code)}</div></td><td>${escapeHtml(x.subject_name)}<div class="muted">${subjectLabel(x.subject_group)}</div></td><td>${typeLabel(x.exam_type)}</td><td>${badge(x.status,statusType(x.status))}</td><td>${formatDateTime(x.created_at)}</td><td><a class="btn btn-secondary" href="#/exam/${x.id}">Chi tiết</a></td></tr>`).join('');
+  root.innerHTML=staffShell({profile,active:'exams',title:'Kỳ thi',content:`<div class="page-header"><div><h1>Kỳ thi</h1><p class="muted">Một kỳ thi có thể có nhiều ca; mỗi ca có nhiều phòng và một đề.</p></div>${canCreateExam(profile)?'<button id="create-exam" class="btn btn-primary">Tạo kỳ thi</button>':''}</div><div class="card">${rows?`<div class="table-wrap"><table class="table"><thead><tr><th>Kỳ thi</th><th>Môn</th><th>Loại</th><th>Trạng thái</th><th>Tạo lúc</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>`:'<div class="empty-state">Chưa có kỳ thi nào.</div>'}</div>`});
+  root.querySelector('#create-exam')?.addEventListener('click',()=>showCreate(root,profile));
+}
+
+function showCreate(root,profile){
+  const year=new Date().getFullYear();
+  openModal({title:'Tạo kỳ thi',body:`<form id="exam-create" class="stack"><div class="form-grid"><div class="field"><label>Mã kỳ thi</label><input class="input" name="code" placeholder="GT1-GK-2026" required></div><div class="field"><label>Tên kỳ thi</label><input class="input" name="name" placeholder="Giải tích 1 – Giữa kỳ" required></div><div class="field"><label>Nhóm môn</label><select class="select" name="subject_group"><option value="math">Toán</option><option value="physics">Vật lý</option><option value="philosophy">Triết</option><option value="english">Anh văn</option><option value="other">Khác</option></select></div><div class="field"><label>Tên môn</label><input class="input" name="subject_name" placeholder="Giải tích 1" required></div><div class="field"><label>Loại kỳ thi</label><select class="select" name="exam_type"><option value="midterm">Giữa kỳ</option><option value="final">Cuối kỳ</option><option value="other">Khác</option></select></div><div class="field"><label>Hiện điểm cho SV</label><select class="select" name="score_visibility"><option value="hidden">Không hiện</option><option value="immediate">Hiện ngay sau nộp</option><option value="after_close">Chỉ hiện khi đóng kỳ thi</option></select></div><div class="field"><label>Năm học</label><input class="input" name="academic_year" value="${year}-${year+1}"></div><div class="field"><label>Học kỳ</label><input class="input" name="semester" placeholder="1"></div><div class="field"><label>Lưu hồ sơ (ngày)</label><input class="input" name="retention_days" type="number" min="1" max="3650" value="30"></div></div></form>`,footer:'<button class="btn btn-secondary" data-cancel>Hủy</button><button class="btn btn-primary" data-save>Tạo kỳ thi</button>',onMount(modal){modal.querySelector('[data-cancel]').onclick=closeModal;modal.querySelector('[data-save]').onclick=async e=>{const form=modal.querySelector('#exam-create');if(!form.reportValidity())return;const btn=e.currentTarget;setBusy(btn,true);try{const fd=Object.fromEntries(new FormData(form));const exam=await createExam(fd,profile.id);closeModal();toast('Đã tạo kỳ thi.','success');location.hash=`#/exam/${exam.id}`;}catch(err){toast(errorMessage(err),'error');setBusy(btn,false);}};}});
+}

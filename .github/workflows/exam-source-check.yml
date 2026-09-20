@@ -1,0 +1,25 @@
+name: Exam Source Check
+
+on:
+  push:
+    paths:
+      - 'exam/**'
+      - '.github/workflows/exam-source-check.yml'
+  pull_request:
+    paths:
+      - 'exam/**'
+      - '.github/workflows/exam-source-check.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check exam source structure
+        run: node exam/tools/check-source.mjs
