@@ -7,9 +7,10 @@ import { renderSessions } from './sessions.js';
 import { renderRoster } from './roster.js';
 import { renderPaper } from './paper.js';
 import { renderMembers } from './members.js';
+import { renderSources } from './sources.js';
 import { renderPreflight } from './preflight.js';
 
-const tabs=[['overview','Tổng quan'],['sessions','Ca & phòng'],['roster','Danh sách SV'],['paper','Đề thi'],['members','Nhân sự'],['preflight','Kiểm tra trước thi']];
+const tabs=[['overview','Tổng quan'],['sessions','Ca & phòng'],['roster','Danh sách SV'],['paper','Đề thi'],['sources','Tài liệu gốc'],['members','Nhân sự'],['preflight','Kiểm tra trước thi']];
 
 export async function renderExamDetail(root,profile,examId){
   const [{exam,members},membership,sessions]=await Promise.all([getExam(examId),getMembership(examId,profile.id),listSessions(examId)]);
@@ -19,7 +20,7 @@ export async function renderExamDetail(root,profile,examId){
   root.innerHTML=staffShell({profile,active:'exam',examId:exam.id,title:exam.name,content});
   const host=root.querySelector('#exam-tab-content');
   const ctx={root,host,profile,exam,members,membership,sessions,reload:()=>renderExamDetail(root,profile,examId)};
-  const mount=async id=>{saveUiState(key,id);root.querySelectorAll('[data-tab]').forEach(b=>b.classList.toggle('active',b.dataset.tab===id));host.innerHTML='<div class="card">Đang tải…</div>';if(id==='overview')await renderOverview(ctx);if(id==='sessions')await renderSessions(ctx);if(id==='roster')await renderRoster(ctx);if(id==='paper')await renderPaper(ctx);if(id==='members')await renderMembers(ctx);if(id==='preflight')await renderPreflight(ctx);};
+  const mount=async id=>{saveUiState(key,id);root.querySelectorAll('[data-tab]').forEach(b=>b.classList.toggle('active',b.dataset.tab===id));host.innerHTML='<div class="card">Đang tải…</div>';if(id==='overview')await renderOverview(ctx);if(id==='sessions')await renderSessions(ctx);if(id==='roster')await renderRoster(ctx);if(id==='paper')await renderPaper(ctx);if(id==='sources')await renderSources(ctx);if(id==='members')await renderMembers(ctx);if(id==='preflight')await renderPreflight(ctx);};
   root.querySelectorAll('[data-tab]').forEach(b=>b.addEventListener('click',()=>mount(b.dataset.tab)));
   await mount(active);
 }
