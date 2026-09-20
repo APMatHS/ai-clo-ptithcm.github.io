@@ -1,23 +1,25 @@
 import { escapeHtml } from './ui.js';
-import { roleLabel } from './permissions.js';
+import { roleLabel,isSystemAdmin } from './permissions.js';
 
 const navItem=(href,label,icon,active)=>`<a class="nav-button ${active?'active':''}" href="${href}"><span aria-hidden="true">${icon}</span><span>${escapeHtml(label)}</span></a>`;
 
 export function staffShell({profile,active='home',content,title='AI-CLO EXAM',examId=null}){
+  const adminNav=isSystemAdmin(profile)?navItem('#/accounts','Tài khoản','⚙',active==='accounts'):'';
   return `<div class="app-shell">
     <aside class="sidebar">
       <div class="sidebar-brand">AI-CLO <span>EXAM</span></div>
-      <nav class="sidebar-nav" aria-label="Điều hướng chính">
+      <nav class="sidebar-nav" aria-label="Điều hướng chính" data-nav-count="${adminNav?6:5}">
         ${navItem('#/','Tổng quan','⌂',active==='home')}
         ${navItem('#/exams','Kỳ thi','▣',active==='exams'||active==='exam')}
         ${examId?navItem(`#/exam/${examId}/live`,'LIVE','●',active==='live'):navItem('#/exams','LIVE','●',active==='live')}
         ${examId?navItem(`#/exam/${examId}/results`,'Kết quả','▤',active==='results'):navItem('#/exams','Kết quả','▤',active==='results')}
+        ${adminNav}
         ${navItem('#/student','Thi SV','▶',active==='student')}
       </nav>
       <div class="sidebar-footer">
-        <div style="font-weight:800">${escapeHtml(profile?.full_name||'')}</div>
-        <div style="font-size:12px;color:#b9d0e2">${escapeHtml(roleLabel(profile?.system_role))}</div>
-        <button id="staff-logout" class="btn btn-ghost" style="color:#fff;padding-left:0;margin-top:8px">Đăng xuất</button>
+        <div class="sidebar-user-name">${escapeHtml(profile?.full_name||'')}</div>
+        <div class="sidebar-user-role">${escapeHtml(roleLabel(profile?.system_role))}</div>
+        <button id="staff-logout" class="btn btn-ghost sidebar-logout">Đăng xuất</button>
       </div>
     </aside>
     <main class="main-shell">
