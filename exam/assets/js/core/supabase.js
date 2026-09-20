@@ -1,7 +1,11 @@
-import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.116.0/+esm';
 import { CONFIG } from '../config.js';
 
-export const supabase = createClient(CONFIG.supabaseUrl, CONFIG.supabasePublishableKey, {
+const supabaseBrowser=globalThis.supabase;
+if(!supabaseBrowser?.createClient){
+  throw new Error('Thư viện Supabase chưa được tải. Hãy tải lại trang hoặc kiểm tra kết nối CDN.');
+}
+
+export const supabase = supabaseBrowser.createClient(CONFIG.supabaseUrl, CONFIG.supabasePublishableKey, {
   auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true},
   realtime:{params:{eventsPerSecond:4}},
   global:{headers:{'X-Client-Info':'ai-clo-exam/1.0'}}
