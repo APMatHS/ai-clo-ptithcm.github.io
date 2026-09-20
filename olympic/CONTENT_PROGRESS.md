@@ -12,23 +12,24 @@ Chuẩn đang áp dụng:
 - Mỗi bài học có mục tiêu, kỹ thuật Olympic, ví dụ/chiến lược và sai lầm thường gặp.
 - Mỗi bài có **đề luyện 4 câu** theo tầng: Củng cố → Biến thể → Olympic → Thử thách.
 - Không tạo nội dung quá cơ bản hoặc lặp lại giáo trình đại trà.
-- Tăng liên kết giữa các ngôn ngữ: **ma trận ↔ ánh xạ tuyến tính ↔ kernel/image ↔ dimension ↔ trực giao ↔ cấu trúc phổ ↔ truy hồi ↔ đa thức**.
+- Tăng liên kết giữa các ngôn ngữ: **ma trận ↔ ánh xạ tuyến tính ↔ kernel/image ↔ dimension ↔ trực giao ↔ cấu trúc phổ ↔ truy hồi ↔ đa thức ↔ tổ hợp**.
 - Đề luyện trong `olympic_tests` hiện chỉ lưu nội dung đề, không nhúng lời giải. Trường `answer_tex` thuộc ngân hàng bài toán (`olympic_problems`) và phần lời giải sẽ tiếp tục được tách/siết quyền khi triển khai.
 
 ## Định hướng bám đề gần đây
 
 - Ưu tiên đề cương Olympic Toán sinh viên toàn quốc 2026 và các đề/đề đề nghị 2024–2026; đồng thời tham khảo kỷ yếu các kỳ thi gần đây của Hội Toán học Việt Nam.
-- Phần Đại số tuyến tính đã bám các mạch xuất hiện trực tiếp trong đề cương và đề gần đây: hạng, định thức, nghịch đảo, ánh xạ tuyến tính, trị riêng, chéo hóa, ma trận đặc biệt, Cayley–Hamilton, vết và giao hoán.
-- Kỷ yếu Olympic 2024–2025 có nhiều bài/chuyên đề đa thức, nên phần Đa thức ưu tiên **cấu trúc nghiệm, đối xứng, nội suy, bất khả quy, hợp thành và cực trị**, tránh biến thành ôn phổ thông thuần túy.
-- Nội dung nâng cao chỉ giữ khi tạo giá trị giải bài rõ ràng: Gauss–Lucas, sai phân hữu hạn, cyclotomic nguyên tố, liên hợp affine, Chebyshev–Markov.
+- Đại số tuyến tính tập trung vào hạng, định thức, nghịch đảo, ánh xạ tuyến tính, trị riêng, chéo hóa, ma trận đặc biệt, Cayley–Hamilton, vết và giao hoán.
+- Đa thức ưu tiên cấu trúc nghiệm, đối xứng, nội suy, bất khả quy, hợp thành và cực trị.
+- Tổ hợp 2026 nêu trực tiếp chỉnh hợp–tổ hợp, Pascal–nhị thức, quy tắc đếm, bao hàm–loại trừ, phân hoạch số tự nhiên, quy nạp, Dirichlet, cực hạn; bảng A có thêm chuỗi lũy thừa hình thức và hàm sinh. Phần Tổ hợp hiện đã bám các mạch này.
+- Đồ thị giữ như phần mở rộng rời rạc hỗ trợ tư duy cấu trúc, không để lấn các nội dung cốt lõi của đề cương 2026.
 
 ## Tiến độ hiện tại
 
 Tổng số mục nội dung của môn Đại số: **27**.
 
-Đã nâng theo chuẩn Olympic: **20/27**.
+Đã nâng theo chuẩn Olympic: **27/27 — hoàn thành**.
 
-### Đại số tuyến tính — đã hoàn thành 14/14
+### Đại số tuyến tính — hoàn thành 14/14
 
 1. ✅ Hệ phương trình tuyến tính & mô hình hóa
 2. ✅ Định thức
@@ -45,7 +46,7 @@ Tổng số mục nội dung của môn Đại số: **27**.
 13. ✅ Không gian Euclide & trực giao
 14. ✅ Dạng toàn phương
 
-### Đa thức — đã hoàn thành 6/6
+### Đa thức — hoàn thành 6/6
 
 1. ✅ Nghiệm & đạo hàm đa thức
 2. ✅ Viète & tổng Newton
@@ -54,75 +55,73 @@ Tổng số mục nội dung của môn Đại số: **27**.
 5. ✅ Phương trình hàm đa thức
 6. ✅ Chebyshev & cực trị đa thức
 
-### Tổ hợp – Rời rạc — còn 7/7
+### Tổ hợp – Rời rạc — hoàn thành 7/7
 
-1. ⬜ Nguyên lý đếm; hoán vị – chỉnh hợp – tổ hợp
-2. ⬜ Nhị thức Newton & đồng nhất thức tổ hợp
-3. ⬜ Nguyên lý Dirichlet
-4. ⬜ Đếm hai cách & nguyên lý bù trừ
-5. ⬜ Hệ thức truy hồi
-6. ⬜ Bất biến & nguyên lý cực hạn
-7. ⬜ Đồ thị cơ bản
+1. ✅ Nguyên lý đếm; hoán vị – chỉnh hợp – tổ hợp
+2. ✅ Nhị thức Newton & đồng nhất thức tổ hợp
+3. ✅ Nguyên lý Dirichlet
+4. ✅ Đếm hai cách & nguyên lý bù trừ
+5. ✅ Hệ thức truy hồi
+6. ✅ Bất biến & nguyên lý cực hạn
+7. ✅ Đồ thị cơ bản
 
-## Phần Đa thức đã hoàn thành
+## Tổ hợp – Rời rạc vừa hoàn thành
 
-### Nghiệm & đạo hàm đa thức
+### Nguyên lý đếm; hoán vị – chỉnh hợp – tổ hợp
 
-6 bài: nghiệm bội và `gcd(P,P')`; Rolle lặp và đạo hàm cao; đếm nghiệm bằng đơn điệu–độ lồi–bảng dấu; bài tham số với nghiệm kép là điểm chuyển pha; Gauss–Lucas và hình học nghiệm phức; Mini Olympic tổng hợp. Descartes chỉ giữ như công cụ phụ.
+6 bài: mô hình hóa trước khi đếm; hoán vị có lặp và điều kiện vị trí; chọn–sắp và cấu hình nhiều trạng thái; phân phối/stars-and-bars và phân biệt composition–partition; chuỗi nhị phân với vị trí cấm; song ánh và mã hóa cấu hình.
 
-### Viète & tổng Newton
+### Nhị thức Newton & đồng nhất thức tổ hợp
 
-6 bài: Viète và đa thức đối xứng; tổng Newton như truy hồi; biến đổi nghiệm (nghịch đảo, tịnh tiến); bài toán ngược dựng đa thức; log-đạo-hàm `P'/P` cho tổng phân thức theo nghiệm; Mini Olympic Viète–Newton. Trọng tâm là không giải phương trình nếu chỉ cần dữ liệu đối xứng.
+6 bài: Pascal và nhị thức Newton; trích hệ số; tổng có trọng số bằng đạo hàm; tổng luân phiên và lọc chỉ số; Vandermonde và đếm hai cách; nhập môn hàm sinh hình thức. Phần hàm sinh được giữ ở mức phù hợp cho bảng A.
 
-### Nội suy Lagrange
+### Nguyên lý Dirichlet
 
-6 bài: tính duy nhất và đủ số điểm; cơ sở Lagrange; công thức `Q'(x_i)` và các tổng Lagrange; sai phân hữu hạn trên lưới nguyên; phần dư modulo `Q(x)` bằng nội suy tại nghiệm; Mini Olympic nội suy. Hạn chế giải hệ Vandermonde cơ học.
+6 bài: ngưỡng bắt buộc; lớp đồng dư; Dirichlet hình học; tổng từng phần; dãy đơn điệu kiểu Erdős–Szekeres; Dirichlet kết hợp cực hạn. Trọng tâm là **thiết kế hộp**, không chỉ áp công thức máy móc.
 
-### Đa thức bất khả quy
+### Đếm hai cách & nguyên lý bù trừ
 
-6 bài: bổ đề Gauss và khóa bậc nhân tử; Eisenstein và dịch biến; giảm modulo `p`; cyclotomic nguyên tố và đa thức nghịch đảo; kỹ thuật thế nhiều điểm cho dạng tích cộng hằng số; Mini Olympic chọn tiêu chuẩn. Ưu tiên tiêu chuẩn vừa đủ, phù hợp cấu trúc.
+6 bài: incidence; đồng nhất thức bằng đếm hai cách; bao hàm–loại trừ; derangement và ánh xạ toàn ánh; đúng `r` điều kiện và tư duy đảo; Mini Olympic chọn chiến lược giữa song ánh, incidence và PIE.
 
-### Phương trình hàm đa thức
+### Hệ thức truy hồi
 
-6 bài: khóa bậc và hệ số đầu; sai phân–tịnh tiến; lan truyền nghiệm và chia hết; hợp thành và điểm bất động; liên hợp affine; Mini Olympic tổng hợp. Quy trình chuẩn là xử lý nghiệm hằng → bậc → hệ số đầu → điểm đặc biệt → cuối cùng mới đồng nhất hệ số.
+6 bài: lập truy hồi bằng bước cuối; phương trình đặc trưng; truy hồi không thuần nhất; Fibonacci/Catalan; giải truy hồi bằng hàm sinh hình thức; trạng thái hữu hạn và ma trận chuyển.
 
-### Chebyshev & cực trị đa thức
+### Bất biến & nguyên lý cực hạn
 
-6 bài: truy hồi và công thức `T_n(cos θ)=cos(nθ)`; nghiệm–cực trị xen kẽ; minimax cho đa thức monic; chuẩn hóa đoạn `[a,b]`; bất đẳng thức Markov cho đạo hàm; Mini Olympic xen dấu và cực trị. Trọng tâm là tư duy “xen dấu tối ưu”, không chỉ học thuộc Chebyshev.
+6 bài: parity và tô màu; bất biến modulo/trọng số; đơn biến; nguyên lý cực hạn; phản ví dụ tối tiểu; Mini Olympic thao tác–bất biến–cực hạn.
 
-## Kiểm tra dữ liệu sau nâng cấp Đa thức
+### Đồ thị cơ bản
 
-- Cả **5 chủ đề vừa nâng** đều có đúng **6 bài học**.
+6 bài: bậc và định lý bắt tay; đường đi–chu trình–liên thông; cây; đồ thị hai phía; đường đi Euler; matching/Hall và mô hình phân công. Đây là phần mở rộng rời rạc, không phải trọng tâm chính của đề cương 2026.
+
+## Kiểm tra dữ liệu sau nâng cấp Tổ hợp – Rời rạc
+
+- Cả **7 chủ đề** đều có đúng **6 bài học**.
 - Mỗi chủ đề có đúng **6 đề luyện**.
-- Cả **30 đề luyện** đều có đúng **4 câu**.
+- Cả **42 đề luyện** đều có đúng **4 câu**.
 - `order_index` bài học và đề luyện trong từng chủ đề không trùng.
+- Tổng phần Tổ hợp – Rời rạc hiện có **42 bài học + 42 đề luyện = 168 câu luyện cấu trúc**.
 - Không sửa frontend; chỉ cập nhật dữ liệu Olympic trong Supabase và file tiến độ này.
 
-## Thứ tự tiếp tục
+## Tổng kết môn Đại số Olympic
 
-Phần **Đại số tuyến tính đã hoàn thành 14/14** và **Đa thức đã hoàn thành 6/6**.
+- **Đại số tuyến tính: 14/14**.
+- **Đa thức: 6/6**.
+- **Tổ hợp – Rời rạc: 7/7**.
+- **Tổng: 27/27 chủ đề đã nâng theo chuẩn Olympic**.
 
-Tiếp theo chuyển sang **Tổ hợp – Rời rạc**:
+Nội dung hiện ưu tiên nhận cấu trúc, chứng minh, bất biến, tham số, cực trị và phối hợp nhiều công cụ thay vì thao tác cơ học. Các phần nâng cao chỉ được giữ khi có giá trị giải bài rõ ràng.
 
-1. Nguyên lý đếm; hoán vị – chỉnh hợp – tổ hợp
-2. Nhị thức Newton & đồng nhất thức tổ hợp
-3. Nguyên lý Dirichlet
-4. Đếm hai cách & nguyên lý bù trừ
-5. Hệ thức truy hồi
-6. Bất biến & nguyên lý cực hạn
-7. Đồ thị cơ bản
+## Nguyên tắc làm việc tiếp theo
 
-## Nguyên tắc làm việc
-
-- Làm **từng chủ đề một**, không nâng hàng loạt máy móc nếu chưa kiểm tra chủ đề trước.
-- Trước khi chỉnh, đọc lại nội dung hiện có và tài liệu lộ trình/đề thi liên quan.
-- Ưu tiên các dạng bài có giá trị luyện thi: cấu trúc, bất biến, cực trị, chứng minh, phối hợp nhiều công cụ.
-- Nếu một nội dung không nằm trong trọng tâm đề gần đây, hạ xuống mức ứng dụng/phần mở rộng thay vì cho chiếm tỷ trọng lớn.
-- Sau mỗi chủ đề, kiểm tra lại số bài học, số đề luyện và số câu cấu trúc trước khi chuyển sang chủ đề kế tiếp.
+- Không mở rộng thêm chủ đề chỉ để tăng số lượng.
+- Bước tiếp theo nên là **audit chất lượng toàn bộ 27 chủ đề**, phát hiện bài trùng ý, bài quá dễ/quá xa đề cương và cân lại độ khó.
+- Sau audit có thể xây **đề tổng hợp Olympic Đại số** theo ma trận chủ đề và mức độ, thay vì tiếp tục thêm bài rời rạc.
 - Chỉ sửa dữ liệu Supabase khi thay nội dung; không sửa frontend nếu không cần thiết.
 
 ## Trạng thái tiếp theo
 
-**Chủ đề kế tiếp: Nguyên lý đếm; hoán vị – chỉnh hợp – tổ hợp.**
+**Môn Đại số: HOÀN THÀNH 27/27 chủ đề.**
 
-Mục tiêu: không dừng ở công thức `n!`, `A_n^k`, `C_n^k`; ưu tiên mô hình hóa phép đếm, song ánh, đếm theo vị trí/khoảng trống, hoán vị có ràng buộc, phân phối vật, đếm quỹ đạo nhỏ và các bài có nhiều cách đếm để chuẩn bị cho nguyên lý bù trừ và đếm hai cách.
+Đề xuất bước kế tiếp: audit toàn bộ nội dung và xây bộ đề tổng hợp theo cấu trúc thi thực tế.
