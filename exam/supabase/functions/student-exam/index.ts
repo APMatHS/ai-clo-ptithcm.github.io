@@ -91,13 +91,16 @@ async function login(req:Request,body:any){
     supabase.from('exam_rooms').select('*').eq('id',student.room_id).single()
   ]);if(eErr)throw eErr;if(sErr)throw sErr;if(rErr)throw rErr;
   if(exam.status==='archived')return json(req,{error:'Kỳ thi đã lưu trữ.'},410);
-  const paperInfo=await findPaperVersion(session.id);if(!paperInfo)return json(req,{error:'Đề thi chưa sẵn sàng. Vui lòng báo giám thị.'},409);
   const {data:attempts,error:aErr}=await supabase.from('exam_attempts').select('*').eq('exam_student_id',student.id).order('created_at',{ascending:false}).limit(1);if(aErr)throw aErr;
   let attempt=attempts?.[0]||null;
   if(attempt?.status==='submitted'){
     const show=exam.score_visibility==='immediate'||(exam.score_visibility==='after_close'&&exam.status==='closed');
-    return json(req,{status:'submitted',student:{studentCode:student.student_code,fullName:student.full_name},exam:{name:exam.name,subjectName:exam.subject_name},score:show?attempt.score:null,scoreVisible:show});
+    return json(req,{status:'submitted',student:{studentCode:student.student_code,fullName:student.full_name},exam:{name:exam.name,subjectName:exam.subject_name,status:exam.status},score:show?attempt.score:null,scoreVisible:show});
   }
+  if(exam.status==='closed')return json(req,{error:'Kỳ thi đã đóng.'},410);
+  if(exam.status==='draft')return json(req,{error:'Kỳ thi chưa mở phòng chờ. Vui lòng liên hệ giám thị.'},425);
+  if(!['ready','live'].includes(exam.status))return json(req,{error:'Kỳ thi hiện chưa thể truy cập.'},409);
+  const paperInfo=await findPaperVersion(session.id);if(!paperInfo)return json(req,{error:'Đề thi chưa sẵn sàng. Vui lòng báo giám thị.'},409);
   if(!attempt){
     const {data:newAttempt,error:newErr}=await supabase.from('exam_attempts').insert({exam_student_id:student.id,session_id:session.id,room_id:room.id,paper_version_id:paperInfo.version.id,status:'ready'}).select().single();if(newErr)throw newErr;attempt=newAttempt;
   }
@@ -109,7 +112,7 @@ async function login(req:Request,body:any){
   }
   if(activeSessions?.length) await supabase.from('attempt_sessions').update({revoked_at:new Date().toISOString()}).in('id',activeSessions.map(x=>x.id));
   const token=await issueAttemptToken(attempt.id,deviceId,req.headers.get('user-agent')||'');
-  return json(req,{token,status:attempt.status,student:{studentCode:student.student_code,fullName:student.full_name,className:student.class_name},exam:{id:exam.id,name:exam.name,subjectName:exam.subject_name,type:exam.exam_type,scoreVisibility:exam.score_visibility},session:{id:session.id,name:session.name,startsAt:session.starts_at,endsAt:session.ends_at,durationMinutes:session.duration_minutes},room:{id:room.id,name:room.name},attempt:{id:attempt.id,status:attempt.status,startedAt:attempt.started_at,deadlineAt:attempt.deadline_at,answeredCount:attempt.answered_count}});
+  return json(req,{token,status:attempt.status,student:{studentCode:student.student_code,fullName:student.full_name,className:student.class_name},exam:{id:exam.id,name:exam.name,subjectName:exam.subject_name,type:exam.exam_type,status:exam.status,scoreVisibility:exam.score_visibility},session:{id:session.id,name:session.name,startsAt:session.starts_at,endsAt:session.ends_at,durationMinutes:session.duration_minutes},room:{id:room.id,name:room.name},attempt:{id:attempt.id,status:attempt.status,startedAt:attempt.started_at,deadlineAt:attempt.deadline_at,answeredCount:attempt.answered_count}});
 }
 
 async function ensureAttemptQuestions(attempt:any){
@@ -140,6 +143,7 @@ async function ensureAttemptQuestions(attempt:any){
 async function start(req:Request){
   const {attempt}=await authenticate(req);if(!['ready','in_progress'].includes(attempt.status))return json(req,{error:'Bài thi hiện không thể bắt đầu.'},409);
   const ctx=await contextFromAttempt(attempt);const now=Date.now(),start=Date.parse(ctx.session.starts_at),end=Date.parse(ctx.session.ends_at);
+  if(ctx.exam.status!=='live')return json(req,{error:'Kỳ thi đang ở phòng chờ. Vui lòng đợi giám thị mở thi.',code:'EXAM_NOT_LIVE',examStatus:ctx.exam.status,serverNow:new Date(now).toISOString()},425);
   if(now<start)return json(req,{error:'Chưa đến giờ thi.',serverNow:new Date(now).toISOString(),startsAt:ctx.session.starts_at},425);
   if(now>=end)return json(req,{error:'Ca thi đã kết thúc.'},410);
   let current=attempt;
@@ -212,7 +216,7 @@ async function submit(req:Request,auto=false){
 async function resume(req:Request){
   const {attempt}=await authenticate(req);const ctx=await contextFromAttempt(attempt);const {count}=await supabase.from('attempt_questions').select('id',{count:'exact',head:true}).eq('attempt_id',attempt.id);
   const show=attempt.status==='submitted'&&(ctx.exam.score_visibility==='immediate'||(ctx.exam.score_visibility==='after_close'&&ctx.exam.status==='closed'));
-  return json(req,{status:attempt.status,student:{studentCode:ctx.student.student_code,fullName:ctx.student.full_name,className:ctx.student.class_name},exam:{id:ctx.exam.id,name:ctx.exam.name,subjectName:ctx.exam.subject_name,type:ctx.exam.exam_type},session:{id:ctx.session.id,name:ctx.session.name,startsAt:ctx.session.starts_at,endsAt:ctx.session.ends_at,durationMinutes:ctx.session.duration_minutes},room:{id:ctx.room.id,name:ctx.room.name},attempt:{id:attempt.id,status:attempt.status,startedAt:attempt.started_at,deadlineAt:attempt.deadline_at,answeredCount:attempt.answered_count,totalQuestions:count||0,score:show?attempt.score:null},serverNow:new Date().toISOString()});
+  return json(req,{status:attempt.status,student:{studentCode:ctx.student.student_code,fullName:ctx.student.full_name,className:ctx.student.class_name},exam:{id:ctx.exam.id,name:ctx.exam.name,subjectName:ctx.exam.subject_name,type:ctx.exam.exam_type,status:ctx.exam.status},session:{id:ctx.session.id,name:ctx.session.name,startsAt:ctx.session.starts_at,endsAt:ctx.session.ends_at,durationMinutes:ctx.session.duration_minutes},room:{id:ctx.room.id,name:ctx.room.name},attempt:{id:attempt.id,status:attempt.status,startedAt:attempt.started_at,deadlineAt:attempt.deadline_at,answeredCount:attempt.answered_count,totalQuestions:count||0,score:show?attempt.score:null},serverNow:new Date().toISOString()});
 }
 
 Deno.serve(async(req:Request)=>{
