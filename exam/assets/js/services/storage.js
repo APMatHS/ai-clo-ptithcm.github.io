@@ -6,14 +6,20 @@ function safeName(name='file'){
 }
 
 class StorageAdapter{
-  async upload({examId,file,kind='other'}){
+  async upload({examId,file,kind='other',metadata={}}){
     if(!examId||!file) throw new Error('Thiếu examId hoặc file.');
     const objectPath=`exams/${examId}/${kind}/${crypto.randomUUID()}-${safeName(file.name)}`;
     const {error:uploadError}=await supabase.storage.from(CONFIG.storageBucket).upload(objectPath,file,{cacheControl:'3600',upsert:false,contentType:file.type||undefined});
     if(uploadError) throw uploadError;
-    const {data,error}=await supabase.from('exam_assets').insert({exam_id:examId,provider:'supabase',bucket:CONFIG.storageBucket,object_path:objectPath,kind,mime_type:file.type||null,size_bytes:file.size,created_by:(await supabase.auth.getUser()).data.user?.id}).select().single();
+    const user=(await supabase.auth.getUser()).data.user;
+    const {data,error}=await supabase.from('exam_assets').insert({exam_id:examId,provider:'supabase',bucket:CONFIG.storageBucket,object_path:objectPath,kind,mime_type:file.type||null,size_bytes:file.size,original_name:file.name,metadata,created_by:user?.id}).select().single();
     if(error){await supabase.storage.from(CONFIG.storageBucket).remove([objectPath]);throw error;}
     return data;
+  }
+  async list(examId,kind=null){
+    let query=supabase.from('exam_assets').select('*').eq('exam_id',examId).is('deleted_at',null).order('created_at',{ascending:false});
+    if(kind) query=query.eq('kind',kind);
+    const {data,error}=await query;if(error)throw error;return data||[];
   }
   async signedUrl(asset,expiresIn=300){
     const row=typeof asset==='string'?(await supabase.from('exam_assets').select('*').eq('id',asset).single()).data:asset;
