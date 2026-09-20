@@ -19,7 +19,7 @@ export async function createExam(payload,userId){
 }
 
 export async function updateExam(examId,patch){
-  const allowed=['name','subject_group','subject_name','academic_year','semester','status','score_visibility','retention_days','retention_until'];
+  const allowed=['name','subject_group','subject_name','academic_year','semester','score_visibility','retention_days'];
   const row=Object.fromEntries(Object.entries(patch||{}).filter(([key])=>allowed.includes(key)));
   if(!Object.keys(row).length)throw new Error('Không có nội dung cần cập nhật.');
   const {data,error}=await supabase.from('exams').update(row).eq('id',examId).select().single();
