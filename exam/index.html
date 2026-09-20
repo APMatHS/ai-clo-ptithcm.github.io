@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#102a43">
   <title>AI-CLO EXAM</title>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+  <link rel="preconnect" href="https://unpqmttdkmmbnmmcfqbj.supabase.co" crossorigin>
   <link rel="stylesheet" href="./assets/css/tokens.css">
   <link rel="stylesheet" href="./assets/css/base.css">
   <link rel="stylesheet" href="./assets/css/layout.css">
@@ -24,6 +26,25 @@
   </div>
   <div id="toast-root" class="toast-root" aria-live="assertive"></div>
   <div id="modal-root"></div>
+  <script>
+    (()=>{
+      let ready=false;
+      const host=()=>document.getElementById('app');
+      const escapeHtml=value=>String(value??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[ch]));
+      const fail=message=>{
+        if(ready)return;
+        const root=host();if(!root)return;
+        ready=true;
+        root.innerHTML=`<div class="boot-screen"><div class="brand-mark"><strong>AI-CLO</strong><span>EXAM</span></div><h2>Không thể khởi tạo hệ thống thi</h2><p>${escapeHtml(message||'Không tải được ứng dụng. Hãy tải lại trang hoặc kiểm tra kết nối mạng.')}</p><button class="btn btn-secondary" type="button" onclick="location.reload()">Tải lại trang</button></div>`;
+      };
+      window.__examBootReady=()=>{ready=true;};
+      window.__examBootFail=fail;
+      window.addEventListener('error',event=>fail(event?.message||'Có lỗi khi tải mã nguồn ứng dụng.'));
+      window.addEventListener('unhandledrejection',event=>fail(event?.reason?.message||'Có lỗi khi khởi tạo ứng dụng.'));
+      setTimeout(()=>fail('Khởi tạo quá lâu. Có thể một thư viện hoặc kết nối Supabase chưa tải được.'),12000);
+    })();
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.116.0" onerror="window.__examBootFail?.('Không tải được thư viện Supabase từ CDN.')"></script>
   <script type="module" src="./assets/js/app.js"></script>
 </body>
 </html>
