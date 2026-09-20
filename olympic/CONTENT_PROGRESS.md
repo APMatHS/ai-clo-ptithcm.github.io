@@ -4,12 +4,12 @@ _Cập nhật: 20/09/2026_
 
 ## Mục tiêu chung
 
-Nội dung Olympic được xây theo hướng **thi thực tế**, không dừng ở mức ôn tập học phần. Mỗi chủ đề cần tăng dần từ nền tảng chọn lọc đến kỹ thuật Olympic, phối hợp nhiều ý, bài thi thực chiến và thử thách.
+Nội dung Olympic được xây theo hướng **thi thực tế**, không dừng ở mức ôn tập học phần. Mỗi chủ đề tăng dần từ nền tảng chọn lọc đến kỹ thuật Olympic, phối hợp nhiều ý, bài thi thực chiến và thử thách.
 
 Chuẩn đang áp dụng:
 
 - Mỗi chủ đề ưu tiên khoảng **6 bài học** theo lộ trình tăng dần.
-- Mỗi bài học có mục tiêu, kỹ thuật Olympic, ví dụ có phân tích chiến lược, lưu ý phòng thi và sai lầm thường gặp.
+- Mỗi bài học có mục tiêu, kỹ thuật Olympic, ví dụ/chiến lược và sai lầm thường gặp.
 - Mỗi bài có **đề luyện 4 câu** theo tầng: Củng cố → Biến thể → Olympic → Thử thách.
 - Không tạo nội dung quá cơ bản hoặc lặp lại giáo trình đại trà.
 - Tăng liên kết giữa các ngôn ngữ: **ma trận ↔ ánh xạ tuyến tính ↔ kernel/image ↔ dimension ↔ trực giao ↔ cấu trúc phổ ↔ truy hồi ↔ đa thức**.
@@ -18,20 +18,15 @@ Chuẩn đang áp dụng:
 ## Định hướng bám đề gần đây
 
 - Ưu tiên đề cương Olympic Toán sinh viên toàn quốc 2026 và các đề/đề đề nghị 2024–2026; đồng thời tham khảo kỷ yếu các kỳ thi gần đây của Hội Toán học Việt Nam.
-- Nhóm trọng tâm Đại số tuyến tính: hệ phương trình, hạng, định thức, nghịch đảo, không gian–ánh xạ tuyến tính, trị riêng, đa thức đặc trưng/tối tiểu, chéo hóa; với bảng A chú ý thêm ma trận đặc biệt và Cayley–Hamilton.
-- Đề cương 2026 nêu trực tiếp ma trận đối xứng, phản đối xứng, Hermite và **ma trận trực giao** ở phần bảng A; vì vậy phần Euclide–trực giao được ưu tiên theo hướng cấu trúc ma trận, phổ và bất biến chuẩn.
-- Dạng toàn phương không được nêu thành mục riêng trong đề cương 2026, nên giữ như phần mở rộng hỗ trợ ma trận đối xứng, chéo hóa trực giao, xác định dương và cực trị; không để chiếm tỷ trọng lớn hơn các chủ đề cốt lõi.
-- Đề 2026 có dạng toán tử tuyến tính–trị riêng và bài giao hoán tử dùng trực tiếp `tr(AB)=tr(BA)`; các bài mới phải tăng kỹ năng nhận cấu trúc thay vì chỉ tính toán cơ học.
-- Đề đề nghị 2024 có trực tiếp các cấu trúc khối `[[A,B],[B,A]]` và `[[A,-B],[B,A]]`; vì vậy phần ma trận khối ưu tiên đồng dạng khối, tổng–hiệu và thực hóa ma trận phức.
-- Đề tuyển Olympic 2026 của ĐH Bách Khoa Hà Nội có dạng phương trình `A^3+B=BA` và yêu cầu suy ra giao hoán; vì vậy chủ đề phương trình ma trận bổ sung riêng kỹ thuật **đồng nhất thức đa thức → khả nghịch → ép giao hoán**.
-- Kỷ yếu Olympic 2024 có riêng chuyên đề/bài giảng về đa thức; vì vậy phần Đa thức được xây theo hướng cấu trúc nghiệm, nội suy, đồng nhất thức, bất khả quy và cực trị, tránh biến thành ôn tập phổ thông thuần túy.
-- Nội dung Markov không phải trọng tâm đề cương 2026; chỉ giữ như ứng dụng phụ của lũy thừa ma trận. Trọng tâm chủ đề này chuyển sang Cayley–Hamilton, đa thức tối tiểu, phần lũy linh, truy hồi và lũy thừa toán tử.
+- Phần Đại số tuyến tính đã bám các mạch xuất hiện trực tiếp trong đề cương và đề gần đây: hạng, định thức, nghịch đảo, ánh xạ tuyến tính, trị riêng, chéo hóa, ma trận đặc biệt, Cayley–Hamilton, vết và giao hoán.
+- Kỷ yếu Olympic 2024–2025 có nhiều bài/chuyên đề đa thức, nên phần Đa thức ưu tiên **cấu trúc nghiệm, đối xứng, nội suy, bất khả quy, hợp thành và cực trị**, tránh biến thành ôn phổ thông thuần túy.
+- Nội dung nâng cao chỉ giữ khi tạo giá trị giải bài rõ ràng: Gauss–Lucas, sai phân hữu hạn, cyclotomic nguyên tố, liên hợp affine, Chebyshev–Markov.
 
 ## Tiến độ hiện tại
 
 Tổng số mục nội dung của môn Đại số: **27**.
 
-Đã nâng theo chuẩn Olympic: **15/27**.
+Đã nâng theo chuẩn Olympic: **20/27**.
 
 ### Đại số tuyến tính — đã hoàn thành 14/14
 
@@ -50,14 +45,14 @@ Tổng số mục nội dung của môn Đại số: **27**.
 13. ✅ Không gian Euclide & trực giao
 14. ✅ Dạng toàn phương
 
-### Đa thức — đã hoàn thành 1/6
+### Đa thức — đã hoàn thành 6/6
 
 1. ✅ Nghiệm & đạo hàm đa thức
-2. ⬜ Viète & tổng Newton
-3. ⬜ Nội suy Lagrange
-4. ⬜ Đa thức bất khả quy
-5. ⬜ Phương trình hàm đa thức
-6. ⬜ Chebyshev & cực trị đa thức
+2. ✅ Viète & tổng Newton
+3. ✅ Nội suy Lagrange
+4. ✅ Đa thức bất khả quy
+5. ✅ Phương trình hàm đa thức
+6. ✅ Chebyshev & cực trị đa thức
 
 ### Tổ hợp – Rời rạc — còn 7/7
 
@@ -69,65 +64,65 @@ Tổng số mục nội dung của môn Đại số: **27**.
 6. ⬜ Bất biến & nguyên lý cực hạn
 7. ⬜ Đồ thị cơ bản
 
-## Các chủ đề Đại số tuyến tính vừa nâng
-
-### Chéo hóa ma trận
-
-6 bài: bội đại số–bội hình học, tham số và đa thức tối tiểu, dựng cơ sở riêng và tính lũy thừa, phân biệt trên R/C và ma trận cấu trúc, chéo hóa đồng thời–giao hoán, chéo hóa trực giao.
-
-### Vết & ma trận lũy linh
-
-6 bài: vết và đổi thứ tự tích, giao hoán tử vết 0, ma trận cấp 2 vết 0, lũy linh–hạng–kernel, idempotent/phép chiếu, bài tổng hợp vết–phổ–đồng nhất thức. Có bài luyện bám trực tiếp ý tưởng của đề quốc gia 2026.
-
-### Lũy thừa ma trận & truy hồi tuyến tính
-
-6 bài, chuyển trọng tâm khỏi Markov: chéo hóa, Cayley–Hamilton, dạng `λI+N`, truy hồi tuyến tính, lũy thừa toán tử `T^n(p)`; Markov chỉ còn một bài ứng dụng phụ.
-
-### Ma trận khối & ma trận nghịch đảo
-
-6 bài: biến đổi khối và tam giác hóa; cấu trúc `[[A,B],[B,A]]`; thực hóa `A+iB`; đồng nhất thức `I-AB` và `I-BA`; phần bù Schur như phép khử khối; cập nhật hạng một `I+uv^T` và nghịch đảo nhanh.
-
-### Phương trình ma trận & ma trận giao hoán
-
-6 bài: `AX=B` qua ảnh–kernel; `AX=XB` và giao của hai phổ; không gian giao hoán `C(A)` và trường hợp phổ đơn; phản giao hoán `AX+XA=0`; kỹ thuật đồng nhất thức ép khả nghịch rồi suy ra giao hoán; bài tổng hợp bằng không gian bất biến và `p(A)X=Xp(B)`.
-
-### Không gian Euclide & trực giao
-
-6 bài: Cauchy–Schwarz qua ma trận Gram; `(Im A)^⊥=ker A^T` và `(ker A)^⊥=Im A^T`; Gram–Schmidt/QR như công cụ; phép chiếu và phản xạ Householder; ma trận trực giao với cấu trúc phổ–định thức; định lý phổ cho ma trận đối xứng.
-
-### Dạng toàn phương
-
-6 bài, giữ tỷ trọng như phần mở rộng: biểu diễn `x^TAx` và công thức phân cực; đồng dư và chỉ số quán tính; tiêu chuẩn Sylvester cho bài tham số; xác định dương qua trị riêng và phân tích Gram; thương Rayleigh và cực trị; bài tổng hợp ma trận hạng một `αI+βuu^T`.
-
-## Chủ đề Đa thức vừa nâng
+## Phần Đa thức đã hoàn thành
 
 ### Nghiệm & đạo hàm đa thức
 
-Đã nâng từ 4 lên 6 bài, mỗi bài có đề luyện 4 câu. Trọng tâm mới: nghiệm bội và `gcd(P,P')`; Rolle lặp và đạo hàm cao; đếm nghiệm bằng đơn điệu–độ lồi–bảng dấu; bài tham số với nghiệm kép là điểm chuyển pha; Gauss–Lucas và hình học nghiệm phức như phần nâng cao; Mini Olympic tổng hợp. Quy tắc dấu Descartes được hạ thành công cụ phụ thay vì chiếm riêng một bài.
+6 bài: nghiệm bội và `gcd(P,P')`; Rolle lặp và đạo hàm cao; đếm nghiệm bằng đơn điệu–độ lồi–bảng dấu; bài tham số với nghiệm kép là điểm chuyển pha; Gauss–Lucas và hình học nghiệm phức; Mini Olympic tổng hợp. Descartes chỉ giữ như công cụ phụ.
+
+### Viète & tổng Newton
+
+6 bài: Viète và đa thức đối xứng; tổng Newton như truy hồi; biến đổi nghiệm (nghịch đảo, tịnh tiến); bài toán ngược dựng đa thức; log-đạo-hàm `P'/P` cho tổng phân thức theo nghiệm; Mini Olympic Viète–Newton. Trọng tâm là không giải phương trình nếu chỉ cần dữ liệu đối xứng.
+
+### Nội suy Lagrange
+
+6 bài: tính duy nhất và đủ số điểm; cơ sở Lagrange; công thức `Q'(x_i)` và các tổng Lagrange; sai phân hữu hạn trên lưới nguyên; phần dư modulo `Q(x)` bằng nội suy tại nghiệm; Mini Olympic nội suy. Hạn chế giải hệ Vandermonde cơ học.
+
+### Đa thức bất khả quy
+
+6 bài: bổ đề Gauss và khóa bậc nhân tử; Eisenstein và dịch biến; giảm modulo `p`; cyclotomic nguyên tố và đa thức nghịch đảo; kỹ thuật thế nhiều điểm cho dạng tích cộng hằng số; Mini Olympic chọn tiêu chuẩn. Ưu tiên tiêu chuẩn vừa đủ, phù hợp cấu trúc.
+
+### Phương trình hàm đa thức
+
+6 bài: khóa bậc và hệ số đầu; sai phân–tịnh tiến; lan truyền nghiệm và chia hết; hợp thành và điểm bất động; liên hợp affine; Mini Olympic tổng hợp. Quy trình chuẩn là xử lý nghiệm hằng → bậc → hệ số đầu → điểm đặc biệt → cuối cùng mới đồng nhất hệ số.
+
+### Chebyshev & cực trị đa thức
+
+6 bài: truy hồi và công thức `T_n(cos θ)=cos(nθ)`; nghiệm–cực trị xen kẽ; minimax cho đa thức monic; chuẩn hóa đoạn `[a,b]`; bất đẳng thức Markov cho đạo hàm; Mini Olympic xen dấu và cực trị. Trọng tâm là tư duy “xen dấu tối ưu”, không chỉ học thuộc Chebyshev.
+
+## Kiểm tra dữ liệu sau nâng cấp Đa thức
+
+- Cả **5 chủ đề vừa nâng** đều có đúng **6 bài học**.
+- Mỗi chủ đề có đúng **6 đề luyện**.
+- Cả **30 đề luyện** đều có đúng **4 câu**.
+- `order_index` bài học và đề luyện trong từng chủ đề không trùng.
+- Không sửa frontend; chỉ cập nhật dữ liệu Olympic trong Supabase và file tiến độ này.
 
 ## Thứ tự tiếp tục
 
-Phần **Đại số tuyến tính đã hoàn thành 14/14**. Tiếp tục phần **Đa thức**:
+Phần **Đại số tuyến tính đã hoàn thành 14/14** và **Đa thức đã hoàn thành 6/6**.
 
-1. Viète & tổng Newton
-2. Nội suy Lagrange
-3. Đa thức bất khả quy
-4. Phương trình hàm đa thức
-5. Chebyshev & cực trị đa thức
+Tiếp theo chuyển sang **Tổ hợp – Rời rạc**:
 
-Sau đó mới chuyển sang **Tổ hợp – Rời rạc**.
+1. Nguyên lý đếm; hoán vị – chỉnh hợp – tổ hợp
+2. Nhị thức Newton & đồng nhất thức tổ hợp
+3. Nguyên lý Dirichlet
+4. Đếm hai cách & nguyên lý bù trừ
+5. Hệ thức truy hồi
+6. Bất biến & nguyên lý cực hạn
+7. Đồ thị cơ bản
 
 ## Nguyên tắc làm việc
 
-- Làm **từng chủ đề một**, không nâng hàng loạt máy móc.
+- Làm **từng chủ đề một**, không nâng hàng loạt máy móc nếu chưa kiểm tra chủ đề trước.
 - Trước khi chỉnh, đọc lại nội dung hiện có và tài liệu lộ trình/đề thi liên quan.
-- Ưu tiên các dạng bài có giá trị luyện thi: tham số, cấu trúc, bất biến, cực trị, chứng minh, phối hợp nhiều công cụ.
-- Nếu một nội dung không nằm trong trọng tâm đề cương gần đây, hạ xuống mức ứng dụng/phần mở rộng thay vì cho chiếm tỷ trọng lớn.
+- Ưu tiên các dạng bài có giá trị luyện thi: cấu trúc, bất biến, cực trị, chứng minh, phối hợp nhiều công cụ.
+- Nếu một nội dung không nằm trong trọng tâm đề gần đây, hạ xuống mức ứng dụng/phần mở rộng thay vì cho chiếm tỷ trọng lớn.
 - Sau mỗi chủ đề, kiểm tra lại số bài học, số đề luyện và số câu cấu trúc trước khi chuyển sang chủ đề kế tiếp.
 - Chỉ sửa dữ liệu Supabase khi thay nội dung; không sửa frontend nếu không cần thiết.
 
 ## Trạng thái tiếp theo
 
-**Chủ đề kế tiếp: Viète & tổng Newton.**
+**Chủ đề kế tiếp: Nguyên lý đếm; hoán vị – chỉnh hợp – tổ hợp.**
 
-Mục tiêu: không dừng ở việc nhắc lại công thức Viète; ưu tiên biểu thức đối xứng theo nghiệm, truy hồi Newton cho tổng lũy thừa, dựng đa thức từ dữ kiện về nghiệm, các bài tham số và biến đổi nghiệm, cùng các bài chứng minh đồng nhất thức mà không cần giải phương trình.
+Mục tiêu: không dừng ở công thức `n!`, `A_n^k`, `C_n^k`; ưu tiên mô hình hóa phép đếm, song ánh, đếm theo vị trí/khoảng trống, hoán vị có ràng buộc, phân phối vật, đếm quỹ đạo nhỏ và các bài có nhiều cách đếm để chuẩn bị cho nguyên lý bù trừ và đếm hai cách.
