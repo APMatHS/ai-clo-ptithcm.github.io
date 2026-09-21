@@ -16,7 +16,7 @@ function extractClo(text){
   for(const p of patterns){const m=s.match(p);if(m)return `CLO${m[1]}`;}
   return '';
 }
-function stripClo(text){return String(text||'').replace(/\(\s*CLO\s*\d+\s*\)/ig,'').replace(/\[\s*CLO\s*\d+\s*\]/ig,'').replace(/\bCLO\s*[:=\-]?\s*(?:CLO\s*)?\d+\b/ig,'').replace(/[ \t]+\n/g,'\n').trim();}
+function stripClo(text){return String(text||'').replace(/^[ \t]*%[^\n]*\bCLO\s*[:=\-]?\s*(?:CLO\s*)?\d+[^\n]*\n?/gim,'').replace(/\(\s*CLO\s*\d+\s*\)/ig,'').replace(/\[\s*CLO\s*\d+\s*\]/ig,'').replace(/\bCLO\s*[:=\-]?\s*(?:CLO\s*)?\d+\b/ig,'').replace(/[ \t]+\n/g,'\n').trim();}
 function textHtml(text){return escapeHtml(String(text||'')).replace(/\n/g,'<br>');}
 function stripAnswerPrefix(text){return String(text||'').replace(/^\s*\\True\s*/,'').replace(/^\s*\*\s*/,'').trim();}
 
@@ -31,8 +31,8 @@ function bracedGroups(source,start){
 
 export function parseTexQuestions(source){
   const text=String(source||'').replace(/\r\n?/g,'\n');
-  const blocks=[];const re=/\\begin\{question\}(?:\s*\[([^\]]+)\])?([\s\S]*?)\\end\{question\}/gi;let m;
-  while((m=re.exec(text))){blocks.push({option:m[1]||'',body:m[2]||'',sourceNo:blocks.length+1});}
+  const blocks=[];const re=/\\begin\{(question|ex)\}(?:\s*\[([^\]]+)\])?([\s\S]*?)\\end\{\1\}/gi;let m;
+  while((m=re.exec(text))){blocks.push({option:m[2]||'',body:m[3]||'',sourceNo:blocks.length+1});}
   if(!blocks.length){
     const chunks=text.split(/(?=^\s*(?:Câu|Cau|Question)\s*\d+\s*[\.:)]?)/gim).filter(x=>/\\choice\b/.test(x));
     chunks.forEach((body,i)=>blocks.push({option:'',body,sourceNo:i+1}));
@@ -57,7 +57,7 @@ function xmlText(node){return [...node.getElementsByTagName('*')].filter(x=>x.lo
 function paragraphInfo(p){
   const runs=[...p.getElementsByTagName('*')].filter(x=>x.localName==='r');let text='',markedChars=0,totalChars=0;
   for(const r of runs){const rt=xmlText(r);if(!rt)continue;text+=rt;totalChars+=rt.length;const props=[...r.children].find(x=>x.localName==='rPr');let marked=false;if(props){for(const x of props.children){if(x.localName==='b')marked=true;if(x.localName==='u'&&x.getAttribute('w:val')!=='none'&&x.getAttribute('val')!=='none')marked=true;if(x.localName==='color'){const v=x.getAttribute('w:val')||x.getAttribute('val')||'';if(v&&!['auto','000000'].includes(v.toLowerCase()))marked=true;}}}if(marked)markedChars+=rt.length;}
-  if(!text)text=xmlText(p);return {text:text.trim(),marked:totalChars>0&&markedChars/totalChars>=0.55};
+  if(!text)text=xmlText(p);const hasWordMath=[...p.getElementsByTagName('*')].some(x=>x.localName==='oMath'||x.localName==='oMathPara');return {text:text.trim(),marked:totalChars>0&&markedChars/totalChars>=0.55,hasWordMath};
 }
 
 export async function parseDocxQuestions(file){
@@ -65,8 +65,9 @@ export async function parseDocxQuestions(file){
   const xml=await entry.async('text'),doc=new DOMParser().parseFromString(xml,'application/xml');
   const paragraphs=[...doc.getElementsByTagName('*')].filter(x=>x.localName==='p').map(paragraphInfo).filter(x=>x.text);
   const out=[];let current=null,lastChoice=null,explicitAnswer='';
-  const finish=()=>{if(!current)return;const marked=current.choices.filter(x=>x.marked).map(x=>x.key);if(explicitAnswer)current.correct=explicitAnswer;else if(marked.length===1)current.correct=marked[0];else if(marked.length>1)current.warnings.push('Có nhiều đáp án được đánh dấu định dạng');if(!current.correct)current.warnings.push('Chưa xác định đáp án đúng');if(!current.clo)current.warnings.push('Chưa nhận CLO');for(const k of KEYS)if(!current.choices.some(x=>x.key===k))current.choices.push({key:k,text:'',marked:false});current.choices.sort((a,b)=>KEYS.indexOf(a.key)-KEYS.indexOf(b.key));if(current.choices.some(x=>!x.text))current.warnings.push('Có lựa chọn trống');out.push(current);current=null;lastChoice=null;explicitAnswer='';};
-  for(const p of paragraphs){let s=p.text;const q=s.match(/^\s*(?:Câu|Cau|Question)\s*(\d+)\s*[\.:)]?\s*(.*)$/i);if(q){finish();current={sourceNo:Number(q[1])||out.length+1,body:q[2]||'',choices:[],correct:'',clo:extractClo(s),points:1,warnings:[],format:'docx'};current.body=stripClo(current.body);continue;}if(!current)continue;
+  const finish=()=>{if(!current)return;const marked=current.choices.filter(x=>x.marked).map(x=>x.key);if(explicitAnswer)current.correct=explicitAnswer;else if(marked.length===1)current.correct=marked[0];else if(marked.length>1)current.warnings.push('Có nhiều đáp án được đánh dấu định dạng');if(!current.correct)current.warnings.push('Chưa xác định đáp án đúng');if(!current.clo)current.warnings.push('Chưa nhận CLO');if(current.hasWordMath)current.warnings.push('Có công thức Word: cần rà soát hiển thị');for(const k of KEYS)if(!current.choices.some(x=>x.key===k))current.choices.push({key:k,text:'',marked:false});current.choices.sort((a,b)=>KEYS.indexOf(a.key)-KEYS.indexOf(b.key));if(current.choices.some(x=>!x.text))current.warnings.push('Có lựa chọn trống');out.push(current);current=null;lastChoice=null;explicitAnswer='';};
+  for(const p of paragraphs){let s=p.text;const q=s.match(/^\s*(?:Câu|Cau|Question)\s*(\d+)\s*[\.:)]?\s*(.*)$/i);if(q){finish();current={sourceNo:Number(q[1])||out.length+1,body:q[2]||'',choices:[],correct:'',clo:extractClo(s),points:1,warnings:[],format:'docx',hasWordMath:p.hasWordMath};current.body=stripClo(current.body);continue;}if(!current)continue;
+    if(p.hasWordMath)current.hasWordMath=true;
     const ans=s.match(/^\s*(?:Đáp\s*án|Dap\s*an|Answer)\s*[:\-]\s*([A-D])\b/i);if(ans){explicitAnswer=ans[1].toUpperCase();continue;}
     const c=s.match(/^\s*([A-D])\s*[\.)\:\-]\s*(.*)$/i);if(c){const key=c[1].toUpperCase(),raw=c[2]||'';current.clo=current.clo||extractClo(raw);current.choices.push({key,text:stripClo(raw),marked:p.marked});lastChoice=current.choices[current.choices.length-1];continue;}
     const clo=extractClo(s);if(clo)current.clo=current.clo||clo;const cleaned=stripClo(s);if(!cleaned)continue;if(lastChoice)lastChoice.text+=`\n${cleaned}`;else current.body+=`${current.body?'\n':''}${cleaned}`;
@@ -88,7 +89,7 @@ function updateSummary(modal){const cards=[...modal.querySelectorAll('.import-qu
 export function openQuestionImporter(ctx,sessionId,ws,onDone){
   if(ws.version?.status!=='draft')return toast('Chỉ nhập hàng loạt vào bản nháp.','error');
   let selectedFile=null,parsed=[];
-  openModal({title:'Nhập đề từ DOCX / TEX',wide:true,body:`<div class="stack"><div class="alert">Chọn <strong>.docx</strong> hoặc <strong>.tex</strong>. Hệ thống nhận CLO theo các dạng CLO1, [CLO1], (CLO1), CLO: CLO1. Tất cả câu đều hiện ra để sửa trước khi nhập. Thiếu CLO chỉ cảnh báo, không chặn.</div><div class="field"><label>File đề</label><input class="input" data-import-file type="file" accept=".docx,.tex"></div><div class="row wrap"><button class="btn btn-secondary" type="button" data-filter="all">Tất cả</button><button class="btn btn-secondary" type="button" data-filter="warning">Cần kiểm tra</button><button class="btn btn-secondary" type="button" data-filter="clo">Chưa có CLO</button><span class="muted" data-summary>Chưa đọc file.</span></div><div data-import-state class="muted">DOCX: đáp án có thể được nhận từ gạch chân, in đậm, tô màu hoặc dòng “Đáp án: B”. TEX: nhận \\choice và \\True.</div><div data-import-list style="max-height:58vh;overflow:auto"></div></div>`,footer:'<button class="btn btn-secondary" data-cancel>Hủy</button><button class="btn btn-primary" data-import disabled>Nhập các câu đã chọn</button>',onMount(modal){
+  openModal({title:'Nhập đề từ DOCX / TEX',wide:true,body:`<div class="stack"><div class="alert">Chọn <strong>.docx</strong> hoặc <strong>.tex</strong>. Hệ thống nhận CLO theo các dạng CLO1, [CLO1], (CLO1), CLO: CLO1. Tất cả câu đều hiện ra để sửa trước khi nhập. Thiếu CLO chỉ cảnh báo, không chặn.</div><div class="field"><label>File đề</label><input class="input" data-import-file type="file" accept=".docx,.tex"></div><div class="row wrap"><button class="btn btn-secondary" type="button" data-filter="all">Tất cả</button><button class="btn btn-secondary" type="button" data-filter="warning">Cần kiểm tra</button><button class="btn btn-secondary" type="button" data-filter="clo">Chưa có CLO</button><span class="muted" data-summary>Chưa đọc file.</span></div><div data-import-state class="muted">DOCX: nhận đáp án từ gạch chân, in đậm, tô màu hoặc dòng “Đáp án: B”; công thức Word được cảnh báo để rà soát. TEX: nhận \\begin{question}/\\begin{ex}, \\choice và \\True.</div><div data-import-list style="max-height:58vh;overflow:auto"></div></div>`,footer:'<button class="btn btn-secondary" data-cancel>Hủy</button><button class="btn btn-primary" data-import disabled>Nhập các câu đã chọn</button>',onMount(modal){
     const input=modal.querySelector('[data-import-file]'),list=modal.querySelector('[data-import-list]'),state=modal.querySelector('[data-import-state]'),importBtn=modal.querySelector('[data-import]');
     modal.querySelector('[data-cancel]').onclick=closeModal;
     input.onchange=async()=>{selectedFile=input.files?.[0]||null;if(!selectedFile)return;state.textContent='Đang phân tích file…';list.innerHTML='';importBtn.disabled=true;try{const ext=selectedFile.name.toLowerCase().split('.').pop();parsed=ext==='tex'?parseTexQuestions(await selectedFile.text()):ext==='docx'?await parseDocxQuestions(selectedFile):[];if(!parsed.length)throw new Error('Không tìm thấy câu hỏi.');list.innerHTML=parsed.map(cardHtml).join('');state.textContent=`Đã nhận ${parsed.length} câu. Hãy rà soát và sửa trực tiếp trước khi nhập.`;importBtn.disabled=false;list.querySelectorAll('.import-question').forEach(card=>{card.addEventListener('input',()=>updateSummary(modal));card.addEventListener('change',()=>updateSummary(modal));card.querySelector('details').addEventListener('toggle',e=>{if(e.currentTarget.open)refreshPreview(card);});});updateSummary(modal);}catch(e){state.textContent=errorMessage(e);toast(errorMessage(e),'error',6000);}};
