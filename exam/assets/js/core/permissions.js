@@ -22,6 +22,13 @@ export function hasAnyPermission(profile,membership,permission){
   return perms.includes(permission)||perms.some(x=>String(x).startsWith(`${permission}@`));
 }
 export function scopedPermission(permission,sessionId){return `${permission}@${sessionId}`;}
+export function scopedSessionIds(membership){return [...new Set((membership?.permissions||[]).map(x=>String(x).split('@')[1]).filter(Boolean))];}
+export function expandScopedMembership(membership){
+  if(!membership)return membership;
+  const raw=Array.isArray(membership.permissions)?membership.permissions:[];
+  const expanded=[...new Set(raw.flatMap(x=>{const s=String(x);return s.includes('@')?[s,s.split('@')[0]]:[s];}))];
+  return {...membership,raw_permissions:raw,permissions:expanded};
+}
 export function canCreateExam(profile){return isSystemAdmin(profile);}
 export function roleLabel(role){return ({admin:'Admin',exam_officer:'Khảo thí',teacher:'Giảng viên (thời vụ)',proctor:'Giám thị (thời vụ)'})[role]||role||'—';}
 export function examRoleLabel(role){return ({owner:'Chủ kỳ thi',manager:'Khảo thí / quản lý',author:'Giảng viên / ra đề',proctor:'Giám thị',viewer:'Chỉ xem'})[role]||role||'—';}
