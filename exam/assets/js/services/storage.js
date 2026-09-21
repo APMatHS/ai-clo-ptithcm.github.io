@@ -4,11 +4,14 @@ import { supabase } from '../core/supabase.js';
 function safeName(name='file'){
   return name.normalize('NFKD').replace(/[^a-zA-Z0-9._-]+/g,'-').replace(/-+/g,'-').slice(-120)||'file';
 }
+function safeId(value=''){return String(value||'').replace(/[^a-fA-F0-9-]/g,'');}
 
 class StorageAdapter{
   async upload({examId,file,kind='other',metadata={}}){
     if(!examId||!file) throw new Error('Thiếu examId hoặc file.');
-    const objectPath=`exams/${examId}/${kind}/${crypto.randomUUID()}-${safeName(file.name)}`;
+    const sessionId=safeId(metadata?.session_id||'');
+    const base=sessionId?`exams/${examId}/sessions/${sessionId}/${kind}`:`exams/${examId}/${kind}`;
+    const objectPath=`${base}/${crypto.randomUUID()}-${safeName(file.name)}`;
     const {error:uploadError}=await supabase.storage.from(CONFIG.storageBucket).upload(objectPath,file,{cacheControl:'3600',upsert:false,contentType:file.type||undefined});
     if(uploadError) throw uploadError;
     const user=(await supabase.auth.getUser()).data.user;
