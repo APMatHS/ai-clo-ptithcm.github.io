@@ -64,7 +64,7 @@ Deno.serve(async (req: Request) => {
 
     const { data: item, error: itemError } = await db
       .from("aptis_attempt_items")
-      .select("id,response,answered_at,attempt_id,question_id,aptis_attempts!inner(user_id,target_level),aptis_questions!inner(skill,part,prompt,question_type,level)")
+      .select("id,response,answered_at,attempt_id,question_id,aptis_attempts!inner(user_id,target_level,mode,completed_at),aptis_questions!inner(skill,part,prompt,question_type,level)")
       .eq("attempt_id", attempt_id)
       .eq("question_id", question_id)
       .eq("aptis_attempts.user_id", uid)
@@ -76,6 +76,9 @@ Deno.serve(async (req: Request) => {
     const attempt: any = (item as any).aptis_attempts;
     if (question?.skill !== "writing" || question?.question_type !== "writing_prompt") {
       return json(req, { ok: false, error: "Not a writing prompt" }, 400);
+    }
+    if (attempt?.mode === "mock" && !attempt?.completed_at) {
+      return json(req, { ok: false, error: "MOCK_ASSESSMENT_AVAILABLE_AFTER_BLOCK" }, 409);
     }
 
     const { data: cached } = await db
