@@ -3,8 +3,10 @@ import { hasPermission } from '../../core/permissions.js';
 import { escapeHtml,formatDateTime,badge,openModal,closeModal,toast,setBusy,errorMessage } from '../../core/ui.js';
 
 export async function renderSessions(ctx){
-  const {host,profile,membership,exam,sessions,reload}=ctx;const can=hasPermission(profile,membership,'manage_sessions');
-  host.innerHTML=`<div class="card"><div class="toolbar"><div><div class="card-title">Ca thi & phòng thi</div><div class="muted">Đề thi gắn với ca; một ca có thể có nhiều phòng.</div></div>${can?'<button class="btn btn-primary" data-add-session>Thêm ca thi</button>':''}</div>${sessions.length?sessions.map(s=>sessionCard(s,can)).join(''):'<div class="empty-state">Chưa có ca thi.</div>'}</div>`;
+  const {host,profile,membership,rawMembership,exam,sessions,reload}=ctx;
+  const canManageAssigned=hasPermission(profile,membership,'manage_sessions');
+  const canCreateSession=hasPermission(profile,rawMembership||membership,'manage_sessions');
+  host.innerHTML=`<div class="card"><div class="toolbar"><div><div class="card-title">Ca thi & phòng thi</div><div class="muted">Đề thi gắn với ca; nhân sự thời vụ chỉ thao tác trong ca được Admin phân công.</div></div>${canCreateSession?'<button class="btn btn-primary" data-add-session>Thêm ca thi</button>':''}</div>${sessions.length?sessions.map(s=>sessionCard(s,canManageAssigned)).join(''):'<div class="empty-state">Chưa có ca thi trong phạm vi được phân công.</div>'}</div>`;
   host.querySelector('[data-add-session]')?.addEventListener('click',()=>sessionModal(exam.id,reload));
   host.querySelectorAll('[data-add-room]').forEach(b=>b.addEventListener('click',()=>roomModal(b.dataset.addRoom,reload)));
 }

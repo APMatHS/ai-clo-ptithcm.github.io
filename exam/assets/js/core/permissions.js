@@ -7,6 +7,28 @@ export function hasPermission(profile,membership,permission){
   if(membership.exam_role==='owner') return true;
   return Array.isArray(membership.permissions)&&membership.permissions.includes(permission);
 }
-export function canCreateExam(profile){return !!profile?.active&&['admin','exam_officer','teacher'].includes(profile.system_role);}
-export function roleLabel(role){return ({admin:'Admin',exam_officer:'Khảo thí',teacher:'Giảng viên',proctor:'Giám thị'})[role]||role||'—';}
-export function examRoleLabel(role){return ({owner:'Chủ kỳ thi',manager:'Đồng quản lý',author:'Ra đề',proctor:'Giám thị',viewer:'Chỉ xem'})[role]||role||'—';}
+export function hasSessionPermission(profile,membership,sessionId,permission){
+  if(isSystemAdmin(profile)) return true;
+  if(!profile?.active||!membership||!sessionId) return false;
+  if(membership.exam_role==='owner') return true;
+  const perms=Array.isArray(membership.permissions)?membership.permissions:[];
+  return perms.includes(permission)||perms.includes(`${permission}@${sessionId}`);
+}
+export function hasAnyPermission(profile,membership,permission){
+  if(isSystemAdmin(profile)) return true;
+  if(!profile?.active||!membership) return false;
+  if(membership.exam_role==='owner') return true;
+  const perms=Array.isArray(membership.permissions)?membership.permissions:[];
+  return perms.includes(permission)||perms.some(x=>String(x).startsWith(`${permission}@`));
+}
+export function scopedPermission(permission,sessionId){return `${permission}@${sessionId}`;}
+export function scopedSessionIds(membership){return [...new Set((membership?.permissions||[]).map(x=>String(x).split('@')[1]).filter(Boolean))];}
+export function expandScopedMembership(membership){
+  if(!membership)return membership;
+  const raw=Array.isArray(membership.permissions)?membership.permissions:[];
+  const expanded=[...new Set(raw.flatMap(x=>{const s=String(x);return s.includes('@')?[s,s.split('@')[0]]:[s];}))];
+  return {...membership,raw_permissions:raw,permissions:expanded};
+}
+export function canCreateExam(profile){return isSystemAdmin(profile);}
+export function roleLabel(role){return ({admin:'Admin',exam_officer:'Khảo thí',teacher:'Giảng viên (thời vụ)',proctor:'Giám thị (thời vụ)'})[role]||role||'—';}
+export function examRoleLabel(role){return ({owner:'Chủ kỳ thi',manager:'Khảo thí / quản lý',author:'Giảng viên / ra đề',proctor:'Giám thị',viewer:'Chỉ xem'})[role]||role||'—';}
