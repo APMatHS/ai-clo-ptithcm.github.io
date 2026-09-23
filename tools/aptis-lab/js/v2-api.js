@@ -18,6 +18,7 @@
       } catch (_) {}
       throw new Error(message);
     }
+    if (data?.ok === false) throw new Error(data.error || `Không gọi được ${name}.`);
     return data;
   }
 
@@ -50,7 +51,7 @@
         .eq('user_id', userId)
         .eq('attempt_id', attemptId)
         .eq('question_id', questionId)
-        .eq('assessment_type', kind)
+        .eq('feature', kind)
         .order('created_at', { ascending: false })
         .limit(1)
         .maybeSingle();
@@ -70,14 +71,14 @@
     },
 
     assessSpeaking(attemptId, questionId) {
-      return invoke('aptis-assess-speaking', {
+      return invoke('aptis-speaking-assess', {
         attempt_id: attemptId,
         question_id: questionId
       });
     },
 
     assessWriting(attemptId, questionId) {
-      return invoke('aptis-assess-writing', {
+      return invoke('aptis-writing-assess', {
         attempt_id: attemptId,
         question_id: questionId
       });
