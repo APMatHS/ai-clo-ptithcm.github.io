@@ -5,6 +5,7 @@
   if (!API?.client) return;
 
   const client = API.client;
+  const originalSubmitAnswer = API.submitAnswer.bind(API);
 
   async function invoke(name, body) {
     const { data, error } = await client.functions.invoke(name, { body });
@@ -20,12 +21,26 @@
     return data;
   }
 
+  async function rpc(name, args = {}) {
+    const { data, error } = await client.rpc(name, args);
+    if (error) throw error;
+    return data;
+  }
+
   async function currentUserId() {
     const session = await API.getSession();
     return session?.user?.id || null;
   }
 
   Object.assign(API, {
+    async submitAnswer(attemptId, questionId, response, elapsedMs = null) {
+      const result = await originalSubmitAnswer(attemptId, questionId, response, elapsedMs);
+      window.dispatchEvent(new CustomEvent('aptis:v2-answer-submitted', {
+        detail: { attemptId, questionId, response, result }
+      }));
+      return result;
+    },
+
     async getAssessment(attemptId, questionId, kind) {
       const userId = await currentUserId();
       if (!userId) return null;
@@ -40,7 +55,6 @@
         .limit(1)
         .maybeSingle();
       if (error) {
-        // Production may not have the V2 table yet. Keep the learner flow usable.
         if (`${error.code || ''}` === '42P01') return null;
         throw error;
       }
@@ -79,19 +93,10 @@
       return data || [];
     },
 
-    async getProgressBreakdown(days = 90) {
-      const since = new Date(Date.now() - Math.max(1, Number(days || 90)) * 86400000).toISOString();
-      const userId = await currentUserId();
-      if (!userId) return [];
-      const { data, error } = await client
-        .from('aptis_attempt_items')
-        .select('is_correct,answered_at,question:aptis_questions(skill,part,topic,level)')
-        .not('answered_at', 'is', null)
-        .gte('answered_at', since)
-        .order('answered_at', { ascending: false })
-        .limit(3000);
-      if (error) throw error;
-      return data || [];
+    getProgressBreakdown(days = 90) {
+      return rpc('aptis_progress_breakdown_v2', {
+        p_days: Math.max(1, Math.min(365, Number(days || 90)))
+      });
     }
   });
 })();
