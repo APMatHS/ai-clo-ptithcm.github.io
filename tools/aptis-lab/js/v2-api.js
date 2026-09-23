@@ -34,12 +34,42 @@
   }
 
   Object.assign(API, {
+    // Keep the existing Practice submit flow, but publish an event so V2 can
+    // attach Writing feedback without modifying the legacy runner deeply.
     async submitAnswer(attemptId, questionId, response, elapsedMs = null) {
       const result = await originalSubmitAnswer(attemptId, questionId, response, elapsedMs);
       window.dispatchEvent(new CustomEvent('aptis:v2-answer-submitted', {
         detail: { attemptId, questionId, response, result }
       }));
       return result;
+    },
+
+    drawMockBlock(skill, level, limit, mockKind, section, mockSessionId) {
+      return rpc('aptis_draw_mock_block', {
+        p_skill: skill,
+        p_level: level,
+        p_limit: Number(limit),
+        p_mock_kind: mockKind,
+        p_section: section || null,
+        p_mock_session_id: mockSessionId || null
+      });
+    },
+
+    resumeMockAttempt(attemptId) {
+      return rpc('aptis_get_mock_resume', { p_attempt_id: attemptId });
+    },
+
+    submitMockAnswer(attemptId, questionId, response, elapsedMs = null) {
+      return rpc('aptis_submit_mock_answer', {
+        p_attempt_id: attemptId,
+        p_question_id: questionId,
+        p_response: response,
+        p_response_time_ms: elapsedMs
+      });
+    },
+
+    finalizeMockAttempt(attemptId) {
+      return rpc('aptis_finalize_mock_attempt', { p_attempt_id: attemptId });
     },
 
     async getAssessment(attemptId, questionId, kind) {
@@ -55,10 +85,7 @@
         .order('created_at', { ascending: false })
         .limit(1)
         .maybeSingle();
-      if (error) {
-        if (`${error.code || ''}` === '42P01') return null;
-        throw error;
-      }
+      if (error) throw error;
       return data;
     },
 
@@ -82,16 +109,6 @@
         attempt_id: attemptId,
         question_id: questionId
       });
-    },
-
-    async getAttemptItems(attemptId) {
-      const { data, error } = await client
-        .from('aptis_attempt_items')
-        .select('id,attempt_id,question_id,position,response,is_correct,answered_at,response_time_ms')
-        .eq('attempt_id', attemptId)
-        .order('position');
-      if (error) throw error;
-      return data || [];
     },
 
     getProgressBreakdown(days = 90) {
