@@ -9,8 +9,10 @@ const KEYS=['A','B','C','D'];
 let jsZipLoader=null;
 
 function normalizeClo(value){
-  const m=String(value||'').toUpperCase().match(/CLO\s*[:=\-]?\s*(?:CLO\s*)?(\d+)/i);
-  return m?`CLO${m[1]}`:'';
+  const raw=String(value??'').trim().toUpperCase();
+  const m=raw.match(/CLO\s*[:=\-]?\s*(?:CLO\s*)?(\d+)/i);
+  if(m)return `CLO${m[1]}`;
+  return /^\d+$/.test(raw)?`CLO${Number(raw)}`:'';
 }
 function normalizeAnswer(value){
   const m=String(value||'').toUpperCase().match(/\b([A-D])\b/);
@@ -131,7 +133,7 @@ export async function parseDocxQuestions(file){
     const c=s.match(/^\s*([A-D])\s*[\.)\:\-]\s*(.*)$/i);
     if(c){const key=c[1].toUpperCase(),raw=c[2]||'';const foundClo=extractClo(raw);if(!current.clo&&foundClo){current.clo=foundClo;current.cloSource='Word';}current.choices.push({key,text:stripClo(raw),red:p.red,underline:p.underline,bold:p.bold});lastChoice=current.choices[current.choices.length-1];continue;}
     const clo=extractClo(s);if(!current.clo&&clo){current.clo=clo;current.cloSource='Word';}
-    const cleaned=stripClo(s);if(!cleaned)continue;if(lastChoice)lastChoice.text+=`\n${cleaned}`;else current.body+=`${current.body?'\n':''}${cleaned}`;
+    const cleaned=stripClo(s);if(!cleaned)continue;if(lastChoice){lastChoice.text+=`\n${cleaned}`;lastChoice.red=lastChoice.red||p.red;lastChoice.underline=lastChoice.underline||p.underline;lastChoice.bold=lastChoice.bold||p.bold;}else current.body+=`${current.body?'\n':''}${cleaned}`;
   }
   finish();
   if(!out.length)throw new Error('Không nhận ra câu hỏi. DOCX cần có dạng “Câu 1.” và các lựa chọn A., B., C., D.');
@@ -238,12 +240,12 @@ export function openQuestionImporter(ctx,sessionId,ws,onDone){
     };
     modal.querySelector('[data-cancel]').onclick=()=>{persist();closeModal();window.scrollTo(0,returnScrollY);};
     input.onchange=async()=>{
-      selectedFile=input.files?.[0]||null;if(!selectedFile)return;sourceFileName=selectedFile.name;state.textContent='Đang phân tích file đề…';list.innerHTML='';globalReview.innerHTML='';importBtn.disabled=true;
+      selectedFile=input.files?.[0]||null;if(!selectedFile)return;sourceFileName=selectedFile.name;selectedAnswerFile=null;answerSheetName='';answerInput.value='';state.textContent='Đang phân tích file đề…';list.innerHTML='';globalReview.innerHTML='';importBtn.disabled=true;
       try{const ext=selectedFile.name.toLowerCase().split('.').pop();parsed=ext==='tex'?parseTexQuestions(await selectedFile.text()):ext==='docx'?await parseDocxQuestions(selectedFile):[];if(!parsed.length)throw new Error('Không tìm thấy câu hỏi.');const numbering=numberingWarnings(parsed);globalReview.innerHTML=numbering.length?`<div class="alert alert-warning"><strong>Số thứ tự câu:</strong> ${numbering.map(escapeHtml).join(' · ')}</div>`:'';renderRows(modal,parsed);state.textContent=`Đã nhận ${parsed.length} câu từ ${selectedFile.name}. Hãy rà soát và sửa trực tiếp trước khi nhập.`;importBtn.disabled=false;applyFilter(modal,'all');updateSummary(modal);persist();}catch(e){state.textContent=errorMessage(e);toast(errorMessage(e),'error',6000);}
     };
     answerInput.onchange=async()=>{
       selectedAnswerFile=answerInput.files?.[0]||null;if(!selectedAnswerFile)return;if(!modal.querySelectorAll('.import-question').length)return toast('Hãy tải file DOCX/TEX trước rồi mới ghép Excel đáp án.','error',5000);
-      try{answerSheetName=selectedAnswerFile.name;const sheet=await parseAnswerSheet(selectedAnswerFile);parsed=[...modal.querySelectorAll('.import-question')].map(readCard);const unmatched=mergeAnswerSheet(parsed,sheet.rows);renderRows(modal,parsed);const notes=[];if(sheet.issues.length)notes.push(...sheet.issues);if(unmatched.length)notes.push(`Excel có câu không tìm thấy trong đề: ${unmatched.join(', ')}.`);globalReview.innerHTML=notes.length?`<div class="alert alert-warning"><strong>Excel:</strong> ${notes.map(escapeHtml).join(' · ')}</div>`:`<div class="alert alert-success">Đã ghép ${sheet.rows.length} dòng đáp án/CLO từ Excel. Excel được ưu tiên khi có khác biệt.</div>`;state.textContent=`Đã ghép đáp án từ ${selectedAnswerFile.name}. Các khác biệt với Word/TEX được giữ lại dưới dạng cảnh báo.`;updateSummary(modal);persist();}catch(e){toast(errorMessage(e),'error',6500);}
+      try{answerSheetName=selectedAnswerFile.name;const previousScroll=list.scrollTop;const sheet=await parseAnswerSheet(selectedAnswerFile);parsed=[...modal.querySelectorAll('.import-question')].map(readCard);const unmatched=mergeAnswerSheet(parsed,sheet.rows);renderRows(modal,parsed);requestAnimationFrame(()=>{list.scrollTop=previousScroll;});const notes=[];if(sheet.issues.length)notes.push(...sheet.issues);if(unmatched.length)notes.push(`Excel có câu không tìm thấy trong đề: ${unmatched.join(', ')}.`);globalReview.innerHTML=notes.length?`<div class="alert alert-warning"><strong>Excel:</strong> ${notes.map(escapeHtml).join(' · ')}</div>`:`<div class="alert alert-success">Đã ghép ${sheet.rows.length} dòng đáp án/CLO từ Excel. Excel được ưu tiên khi có khác biệt.</div>`;state.textContent=`Đã ghép đáp án từ ${selectedAnswerFile.name}. Các khác biệt với Word/TEX được giữ lại dưới dạng cảnh báo.`;updateSummary(modal);persist();}catch(e){toast(errorMessage(e),'error',6500);}
     };
     list.addEventListener('input',e=>{const card=e.target.closest('.import-question');if(!card)return;if(e.target.matches('[data-clo]'))setManualSource(card,'clo');updateSummary(modal);schedulePersist();});
     list.addEventListener('change',e=>{const card=e.target.closest('.import-question');if(!card)return;if(e.target.matches('[data-correct]'))setManualSource(card,'correct');if(e.target.matches('[data-clo]'))setManualSource(card,'clo');updateSummary(modal);schedulePersist();});
