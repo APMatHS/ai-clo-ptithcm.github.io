@@ -30,7 +30,11 @@ export async function renderExamDetail(root,profile,examId){
   root.innerHTML=staffShell({profile,active:'exam',examId:exam.id,title:exam.name,content});
   const host=root.querySelector('#exam-tab-content');
   const ctx={root,host,profile,exam,members,membership,rawMembership,sessions,allSessions,reload:()=>renderExamDetail(root,profile,examId)};
-  const mount=async id=>{saveUiState(key,id);root.querySelectorAll('[data-tab]').forEach(b=>b.classList.toggle('active',b.dataset.tab===id));host.innerHTML='<div class="card">Đang tải…</div>';if(id==='overview')await renderOverview(ctx);if(id==='sessions')await renderSessions(ctx);if(id==='roster')await renderRoster(ctx);if(id==='paper')await renderPaper(ctx);if(id==='import')await renderQuestionImportPage(ctx);if(id==='sources')await renderSources(ctx);if(id==='members')await renderMembers(ctx);if(id==='preflight')await renderPreflight(ctx);};
+  const routePaperImportButton=()=>{
+    const old=host.querySelector('[data-import]');if(!old)return;
+    const button=old.cloneNode(true);button.textContent='+ Nhập đề';old.replaceWith(button);button.addEventListener('click',()=>root.querySelector('[data-tab="import"]')?.click());
+  };
+  const mount=async id=>{saveUiState(key,id);root.querySelectorAll('[data-tab]').forEach(b=>b.classList.toggle('active',b.dataset.tab===id));host.innerHTML='<div class="card">Đang tải…</div>';if(id==='overview')await renderOverview(ctx);if(id==='sessions')await renderSessions(ctx);if(id==='roster')await renderRoster(ctx);if(id==='paper'){await renderPaper(ctx);routePaperImportButton();}if(id==='import')await renderQuestionImportPage(ctx);if(id==='sources')await renderSources(ctx);if(id==='members')await renderMembers(ctx);if(id==='preflight')await renderPreflight(ctx);};
   root.querySelectorAll('[data-tab]').forEach(b=>b.addEventListener('click',()=>mount(b.dataset.tab)));
   await mount(active);
 }
