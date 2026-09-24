@@ -74,7 +74,7 @@ export async function renderExamDetail(root,profile,examId){
     const btn=e.currentTarget;setBusy(btn,true,'Đang kiểm tra…');
     try{
       const report=await runPreflight(exam.id,{allowDraftPapers:true});
-      if(!report.ready){toast(`Chưa thể chốt: còn ${report.summary?.errors||0} lỗi cần xử lý.`,'error',6000);const pre=root.querySelector('[data-tab="preflight"]');if(pre)await pre.click();return;}
+      if(!report.ready){setBusy(btn,false);toast(`Chưa thể chốt: còn ${report.summary?.errors||0} lỗi cần xử lý.`,'error',6000);root.querySelector('[data-tab="preflight"]')?.click();return;}
       btn.textContent='Đang chốt…';
       await setExamStatus(exam.id,'ready');toast('Đã chốt kỳ thi. Đề, ca/phòng và danh sách dự thi đã được khóa.','success',6000);await renderExamDetail(root,profile,examId);
     }catch(err){toast(errorMessage(err),'error',6500);setBusy(btn,false);}
