@@ -31,3 +31,10 @@
 - Chưa thử Google Sheets thật; JSON sẽ được người dùng thêm sau.
 
 - Kiểm thử Chromium đạt các luồng danh sách, mã tạo sai/đúng, hộp thoại, nhập bảng, xem thử, sửa ô, lưu, tra cứu riêng tư và LOGIN Admin. Giao diện mobile 375px không tràn ngang; đã xem ảnh desktop/mobile.
+
+## GitHub và bước đưa lên website gốc
+- Đã đẩy mã vào main của fork APMatHS/ai-clo-ptithcm.github.io, commit 0af798097dbadae9e09ec79298d8ba00cfaa3df2.
+- GitHub Actions Công bố điểm checks đã đạt core và Chromium: https://github.com/APMatHS/ai-clo-ptithcm.github.io/actions/runs/36863347344.
+- Fork này chưa bật GitHub Pages. Website ai-clo-ptithcm.github.io được triển khai từ repo gốc ai-clo-ptithcm/ai-clo-ptithcm.github.io.
+- Người dùng cần đưa commit từ fork vào repo gốc (pull/cherry-pick hoặc merge PR) và chờ GitHub Pages triển khai. Chỉ chỉnh fork theo phạm vi yêu cầu; chưa sửa repo gốc.
+- Supabase backend đã sẵn sàng, không cần chạy lại SQL. Sau website triển khai: vào LOGIN đặt mã chung; thêm JSON sau khi cần Google Sheets.
