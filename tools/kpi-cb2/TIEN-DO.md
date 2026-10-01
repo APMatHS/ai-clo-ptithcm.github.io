@@ -33,3 +33,7 @@
 - GitHub Actions KPI CB2 checks đã đạt core, đối chiếu core frontend/backend và Chromium desktop/mobile (gồm căn nút Lưu mã và hiện mã cho Admin): https://github.com/APMatHS/ai-clo-ptithcm.github.io/actions/runs/36891683221.
 - API thật PTITHCM: phiên xem sai bị 401, quản lý chưa đăng nhập bị 401, origin APMaths bị 403.
 - Commit mã công cụ trong fork: 1dbe95a598553068cc0fe20c87d64549ac4f807c.
+
+## Đồng bộ nav chung
+- KPI dùng trực tiếp /js/public-shell.js và /css/public-shell.css, header/footer cùng website PTITHCM.
+- Bỏ header chữ riêng; không sao chép nav hoặc thêm JS vá. Các nút quản lý KPI giữ trong trang.

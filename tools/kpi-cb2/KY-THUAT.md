@@ -6,7 +6,7 @@
 | --- | --- | --- |
 | Nội dung, nút, các panel và hộp thoại | tools/kpi-cb2/index.html | Không nhúng mã xem, chỉ tiêu hoặc hồ sơ vào HTML |
 | Giao diện bảng, sidebar, dialog | tools/kpi-cb2/css/app.css | Giữ nút Lưu mã căn cuối ô nhập, kiểm tra mobile |
-| Head/nav công cụ | tools/css/header.css và index.html | Cùng bố cục với Công bố điểm PTITHCM; không sửa CSS toàn website để xử lý một nút |
+| Head/nav công cụ | /css/public-shell.css, /js/public-shell.js và index.html | Dùng trực tiếp nav chung PTITHCM; nút riêng của KPI sửa tại app.css |
 | Thao tác và hiển thị | tools/kpi-cb2/js/app.js | Giữ năm/tháng/panel khi lưu; tránh ghi đè form đang sửa |
 | Kết nối và đăng nhập | tools/kpi-cb2/js/api.js | Dùng /js/config.js; đúng project rraooqedkpyhokattwdz, storageKey riêng |
 | Cách tính, xử lý Form, CSV | tools/kpi-cb2/js/core.js | Hàm thuần, không chứa khóa; cập nhật cả bản backend nếu sửa |
