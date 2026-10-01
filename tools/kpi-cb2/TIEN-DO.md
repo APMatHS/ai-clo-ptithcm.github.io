@@ -28,3 +28,8 @@
 - Chủ sở hữu pull/merge thay đổi vào ai-clo-ptithcm/ai-clo-ptithcm.github.io để website gốc triển khai.
 - Sau khi website triển khai: Admin PTITHCM đăng nhập, đặt mã xem; thêm JSON Google nếu Supabase PTITHCM chưa có, rồi Đồng bộ ngay.
 - Xem KY-THUAT.md để biết bản đồ file và quy trình chỉnh sửa sau này.
+
+## Kết quả kiểm tra bản sao
+- GitHub Actions KPI CB2 checks đã đạt core, đối chiếu core frontend/backend và Chromium desktop/mobile (gồm căn nút Lưu mã và hiện mã cho Admin): https://github.com/APMatHS/ai-clo-ptithcm.github.io/actions/runs/36891683221.
+- API thật PTITHCM: phiên xem sai bị 401, quản lý chưa đăng nhập bị 401, origin APMaths bị 403.
+- Commit mã công cụ trong fork: 1dbe95a598553068cc0fe20c87d64549ac4f807c.
