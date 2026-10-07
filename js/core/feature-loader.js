@@ -1,4 +1,4 @@
-/* AI-CLO PTITHCM V12.6.55 — on-demand loader for independent utilities only.
+/* AI-CLO PTITHCM V12.6.56 — on-demand loader for independent utilities only.
    Assessment runtime is owned entirely by js/assessment.js. */
 (()=>{
 'use strict';
@@ -14,8 +14,8 @@ const isStructureTeacher=()=>typeof canTeach==='function'&&canTeach();
 const requireStructureAdmin=message=>{if(isStructureAdmin())return true;toast(message||'Chỉ Admin được thay đổi CLO.',true);return false};
 const requireStructureTeacher=message=>{if(isStructureTeacher())return true;toast(message||'Chỉ giảng viên phụ trách hoặc Admin được thay đổi Chương và Chủ đề.',true);return false};
 function enforceStructurePermissionsUi(root=document){
- if(!isStructureTeacher())root?.querySelectorAll?.('[data-topic],[data-edit-topic],[data-delete-topic]').forEach(el=>el.remove());
- if(!isStructureAdmin())root?.querySelectorAll?.('#addClo,[data-edit-clo],[data-delete-clo]').forEach(el=>el.remove());
+ if(!isStructureTeacher())root?.querySelectorAll?.('[data-topic],[data-edit-topic]').forEach(el=>el.remove());
+ if(!isStructureAdmin())root?.querySelectorAll?.('[data-delete-chapter],[data-delete-topic],#addClo,[data-edit-clo],[data-delete-clo]').forEach(el=>el.remove());
 }
 const baseTopicForm=window.topicForm;
 if(typeof baseTopicForm==='function')window.topicForm=function(...args){if(!requireStructureTeacher('Chỉ giảng viên phụ trách hoặc Admin được thêm hoặc chỉnh sửa chủ đề.'))return;return baseTopicForm.apply(this,args)};
