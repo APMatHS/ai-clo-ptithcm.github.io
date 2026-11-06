@@ -2,7 +2,14 @@
 (()=>{
 'use strict';
 function escapeHtml(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
-function numbers(v){return (String(v).match(/-?\d+(?:[.,]\d+)?/g)||[]);}
+function numbers(v){
+ const s=String(v??'').trim();
+ const quoted=[...s.matchAll(/['"](-?\d+(?:[.,]\d+)?)['"]/g)].map(m=>m[1]);
+ if(quoted.length>=2)return quoted;
+ const parts=s.replace(/^\$|\$|^\[|\]$/g,'').split(',').map(x=>x.trim()).filter(Boolean);
+ if(parts.length>=2&&parts.every(x=>/^-?\d+(?:\.\d+)?$/.test(x)))return parts;
+ return (s.match(/-?\d+(?:[.,]\d+)?/g)||[]);
+}
 function matrix(headers,rows){
  const h='<thead><tr>'+headers.map(x=>'<th scope="col">'+escapeHtml(x)+'</th>').join('')+'</tr></thead>';
  const b='<tbody>'+rows.map(r=>'<tr>'+r.map((x,i)=>i===0?'<th scope="row">'+escapeHtml(x)+'</th>':'<td>'+escapeHtml(x)+'</td>').join('')+'</tr>').join('')+'</tbody>';
